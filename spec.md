@@ -5,7 +5,8 @@
 
 ## Abstract
 
-The `did:cow` method (Consensus Ownership Wrapper) provides persistent wrappers around other DID methods, enabling rotation and migration without breaking existing references. Uses Ethereum for state transitions, content-addressable storage for zero-cost creation.
+The `did:cow` method (Consensus Ownership Wrapper) provides persistent wrappers around other DID methods, enabling rotation and migration without breaking existing references. 
+It stores changes of control (done currently done with `rotationKeys` in DID:PLC) on the Ethereum blockchain.
 
 ## Status of This Document
 
@@ -17,8 +18,8 @@ This is a draft specification and may be updated, replaced, or obsoleted at any 
 
 Existing DID methods have tradeoffs:
 - **did:key** - No rotation or recovery
-- **did:web** - Domain dependency
-- **did:plc** - Centralized sequencer (Bluesky's PLC server)
+- **did:web** - Domain dependency, if you lose control of your domain you lose control of your identity
+- **did:plc** - Dependency on a centralized sequencer (Bluesky's PLC server)
 - **did:ethr** - Gas costs for all updates
 
 Migrating between methods breaks all existing references. `did:cow` provides a stable wrapper.
@@ -28,11 +29,9 @@ Migrating between methods breaks all existing references. `did:cow` provides a s
 1. **Persistent** - Wrapper DID never changes
 2. **Zero-cost creation** - No blockchain transaction to create
 3. **Method agnostic** - Wraps any DID method
-4. **Self-certifying** - Hash-based construction
-5. **Decentralized** - No central registry dependency
-6. **Transferable** - Controller can be changed
-7. **Rotation Independence** - Key rotation secured by Ethereum, not the wrapped DID's infrastructure
-8. **Composible Control** - Automatic compatibility with multisig and decentralized organization tooling such as Gnosis Safe.
+4. **Decentralized** - No central registry dependency
+5. **Transferable** - Controller can be changed
+6. **Composible Control** - Automatic compatibility with multisig and decentralized organization tooling such as Gnosis Safe.
 
 ## 2. DID Method Name
 
@@ -62,166 +61,62 @@ DID = did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:web:example.com
 
 State mutations (updates/deactivations) are standard Ethereum transactions from the controller address.
 
-**Flow:**
 1. Controller creates transaction with operation data
 2. Controller signs with Ethereum key
 3. Transaction broadcast to Ethereum
 4. Smart contract validates: `msg.sender == current_controller`
 5. State updated or transaction reverts
 
-**Smart Contract Implementation:**
-```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
-
-contract COWRegistry {
-    struct COW {
-        address controller;
-        bool deactivated;
-        bytes wrappedDid;
-    }
-    
-    mapping(bytes32 => State) public cows;
-    
-    event DIDUpdated(bytes32 indexed didHash, address controller, bytes wrappedDid);
-    event DIDDeactivated(bytes32 indexed didHash);
-
-    modifier onlyOwner() {
-    }
-
-    function updateWrappedDID(
-        bytes32 didHash,
-        bytes calldata newWrappedDid
-    ) external onlyOwner {
-        cows[didHash].wrappedDid = newWrappedDid;
-    }
-    
-    function updateController(
-        bytes32 didHash, 
-        address newController, 
-    ) external {
-        State storage state = didStates[didHash];
-        
-        // First update creates the state
-        if (state.controller == address(0)) {
-            require(newController != address(0), "Controller required");
-            require(newWrappedDid.length > 0, "WrappedDid required");
-            state.controller = msg.sender;
-        } else {
-            // Subsequent updates require authorization
-            require(msg.sender == state.controller, "Not authorized");
-            require(!state.deactivated, "DID is deactivated");
-        }
-        
-        // Update state
-        if (newController != address(0)) {
-            state.controller = newController;
-        }
-        if (newWrappedDid.length > 0) {
-            state.wrappedDid = newWrappedDid;
-        }
-        
-        state.lastUpdated = block.timestamp;
-        emit DIDUpdated(didHash, state.controller, state.wrappedDid);
-    }
-    
-    function deactivate(bytes32 didHash) external {
-        State storage state = didStates[didHash];
-        
-        require(msg.sender == state.controller, "Not authorized");
-        require(!state.deactivated, "Already deactivated");
-        
-        state.deactivated = true;
-        emit DIDDeactivated(didHash);
-    }
-    
-    function resolve(bytes32 didHash) external view returns (
-        address controller,
-        bytes memory wrappedDid,
-        bool deactivated
-    ) {
-        State storage state = didStates[didHash];
-        return (state.controller, state.wrappedDid, state.deactivated);
-    }
-}
-```
-
 ## 6. CRUD Operations
 
 ### 6.1 Create
 
-No blockchain transaction required.
-
-**Process:**
-1. Choose `wrapped_did` and `controller_address`
-2. Construct DID: `did:cow:<controller_address>:wrapped_did`
-
-**Verification:** Anyone can fetch the state, recompute hash, confirm it matches the DID.
+1. Create the wrapped DID
+2. Choose your controller address
+2. Insert `cow:<controller_address>:` after the initial `did`:.
 
 ### 6.2 Read (Resolution)
 
-**Algorithm:**
-1. Extract `<hash>` from `did:cow:<hash>`
-2. Query blockchain for state matching `<hash>`
-3. **If on-chain state exists:** Parse state, resolve wrapped_did, add wrapper metadata
-4. **If no on-chain state:** Fetch from content-addressable storage, verify hash, resolve wrapped_did, add metadata
+1. Query an Ethereum RPC endpoint to find out the wrapped DID
+2. If it returns a value, resolve that as per that DID's standard
+3. If it is unset, use the DID value originally specified in the ID
 
-Resolved DID document includes wrapped DID's content plus wrapper metadata in `service` endpoint.
+Resolved DID document includes wrapped DID's content plus wrapper metadata.
 
 ### 6.3 Update
 
-On-chain transaction from current controller.
+Make an on-chain transaction from the current controller.
 
-**Binary format:**
-```
-[32 bytes: did_hash]
-[1 byte: operation_type (0x01)]
-[20 bytes: new_controller (0x00...00 if unchanged)]
-[N bytes: new_wrapped_did UTF-8]
-```
-
-**Validation:**
-- Transaction from current controller address
-- At least one field must change
-- New wrapped_did must be valid
-
-**Use cases:** DID rotation, key recovery, controller transfer, method migration
+The initial update
 
 ### 6.4 Deactivate
 
 Permanent. On-chain transaction from current controller.
 
-**Binary format:**
-```
-[32 bytes: did_hash]
-[1 byte: operation_type (0x02)]
-```
+Set the controller address to `0x` and the wrapped DID value to `did:`.
 
 After deactivation, DID resolves to deactivated status. Cannot be reactivated.
 
 ## 7. Security Considerations
 
-### 7.1 Controller Key Security
+### 7.1 Controller
 
-Security depends on:
-1. Controller's Ethereum private key (secp256k1)
-2. Wrapped DID's keys
-
-Compromised controller key → attacker can update wrapper.
-Compromised wrapped DID keys → attacker can impersonate within that method.
+The controller address inherits all the security considerations of any other Ethereum address. 
 
 ### 7.2 Wrapped DID Dependence
 
-Inherits ALL security properties of wrapped DID, but is recoverable:
+The did:cow address inherits all security properties of wrapped DID.
 - did:web → DNS hijacking risk
 - did:key → no rotation
 - did:plc → trust in Bluesky's directory
 
+However, since users can switch to another wrapped DID they can recover a compromise of the wrapped DID, and also exit in circumstances where the wrapped DID appears unreliable.
+
 ### 7.3 Blockchain Dependencies
 
-Uses Ethereum mainnet for state transitions, immutable audit trail, authorization, and spam prevention (gas costs).
+**Why Ethereum:** 
 
-**Why Ethereum:** High security, established ecosystem, ECDSA signing, native smart contracts, deterministic finality.
+High security, established ecosystem, established tooling for multisig and organizational control. Strong social consensus on anti-censorship means we can be confident that the main Ethereum chain, or failing that a viable fork of the Ethereum chain, will accept continue accepting updates without censorship for the foreseeable future.
 
 **Tradeoffs:** Gas costs (~50-100k gas per update), ~12 second confirmation
 
@@ -229,9 +124,7 @@ Uses Ethereum mainnet for state transitions, immutable audit trail, authorizatio
 
 ### 8.1 Controller Address Linkability
 
-`controller_address` appears in hash computation and on-chain. Reusing controller links all DIDs.
-
-**Mitigation:** Different controllers per context or privacy-preserving addresses.
+`controller_address` is visible as part of the DID and also on-chain once updates are made. Reusing a controller links all DIDs.
 
 ### 8.2 On-Chain Metadata
 
@@ -247,8 +140,6 @@ Available at: [To be provided]
 - `resolveDID(didCow)` - Resolve to DID document
 - `updateDID(didCow, newWrappedDid, newController)` - Build update transaction
 - `deactivateDID(didCow)` - Build deactivation transaction
-
-**Benefits:** No signature in payload (blockchain handles auth), ~50% smaller than JSON, deterministic parsing, fixed-length addressing enables delimiter-free concatenation, native replay protection.
 
 ## 10. Example DID Document
 
@@ -307,136 +198,28 @@ Resolved DID Document:
 | Feature | did:cow | did:key | did:web | did:plc |
 |---------|---------|---------|---------|---------|
 | Rotation Support | ✓ | ✗ | ✓ | ✓ |
-| Recovery | ✓ | ✗ | Limited | ✓ |
-| Zero-cost Creation | ✓ | ✓ | ✓ | ✗ |
+| Zero-cost Creation | ✓ | ✓ | ✓ | ✓ |
+| Zero-cost Controller Updates | ✗  | ✓ | ✓ | ✓ |
 | Decentralized | ✓ | ✓ | ✗ | ✗ |
-| Method Migration | ✓ | ✗ | ✗ | ✗ |
-| Self-verifying | Partial | ✓ | ✗ | ✗ |
+| Zero-cost Controller Updates | ✓ | ✓ | ✓ | ✓ |
+| Decentralized | ✓ | ✓ | ✗ | ✗ |
 | Blockchain Required | Ethereum | None | None | None |
 | Rotation Authority | Ethereum | N/A | DNS | PLC Directory |
-| Censorship Resistant | ✓ | N/A | ✗ | ✗ |
+| Censorship Resistant | ✓ | ✓  | ✗ | ✗ |
 
-## 12. Use Cases
+## 12. Philosophical considerations
 
-### 12.1 Solving did:plc Reorg Risk
+DIDs are intended to be permanent identifiers. Using a wrapper implies that the wrapped DID is not in fact a permanent identifier.
 
-did:plc weakness: Bluesky controls operation log sequencing. Can reorder/reorg history.
+We consider this to illuminate a problem with the wrapped DIDs, rather than with this proposal. A permanent wrapper is required because users cannot be sufficiently confident in the permanence of their existing options.
 
-**Risks:** Operation log rewrites, sequence ambiguity, directory downtime.
-
-**Solution with did:cow wrapper:**
-```
-did:cow:abc123 → did:plc:z72i7hdynmk6r22z27h6tvur
-```
-
-If PLC has issues, execute Ethereum transaction to rotate:
-```
-did:cow:abc123 → did:web:yoursite.com
-```
-
-**Result:** PLC becomes an optional convenience layer, not a single point of failure. Ethereum provides immutable, censorship-resistant record of canonical DID.
-
-### 12.2 Progressive Decentralization
-
-Start simple, upgrade later:
-```
-T0: did:cow:abc123 → did:web:example.com
-T1: did:cow:abc123 → did:plc:z72i7hdynmk6r22z27h6tvur
-```
-
-### 12.3 Key Compromise Recovery
-
-Rotate to fresh keys:
-```
-did:cow:abc123 → did:plc:compromised-id  [compromised]
-did:cow:abc123 → did:plc:fresh-keys-id   [Ethereum tx]
-```
-
-### 12.4 Domain Loss Recovery
-
-Domain expired? Rotate:
-```
-did:cow:abc123 → did:web:lost-domain.com  [expired]
-did:cow:abc123 → did:plc:recovered-id     [Ethereum tx]
-```
-
-### 12.5 Multi-Identity Aggregation
-
-Rotate between multiple DIDs for different contexts while maintaining one persistent identifier.
-
-## 14. References
+## 13. References
 
 - [DID Core Specification](https://www.w3.org/TR/did-core/)
 - [DID Method Rubric](https://w3c.github.io/did-rubric/)
 - [did:key Method](https://w3c-ccg.github.io/did-method-key/)
 - [did:web Method](https://w3c-ccg.github.io/did-method-web/)
 - [did:plc Method](https://github.com/did-method-plc/did-method-plc)
-
-## Appendix A: Hash Computation Example
-
-Python implementation:
-
-```python
-import hashlib
-
-def create_did_tlc(controller_hex: str, wrapped_did: str) -> str:
-    """
-    Create a did:cow identifier.
-    
-    Args:
-        controller_hex: Ethereum address as hex string (no 0x prefix), e.g., "742d35..."
-        wrapped_did: The DID to wrap, e.g., "did:ion:..."
-    """
-    # Convert controller from hex to bytes
-    controller_bytes = bytes.fromhex(controller_hex)
-    
-    # Convert wrapped_did to UTF-8 bytes
-    wrapped_did_bytes = wrapped_did.encode('utf-8')
-    
-    # Concatenate: controller || wrapped_did
-    preimage = controller_bytes + wrapped_did_bytes
-    
-    # Compute SHA-256 hash
-    hash_bytes = hashlib.sha256(preimage).digest()
-    
-    # Convert to hex string
-    hash_hex = hash_bytes.hex()
-    
-    # Construct DID
-    return f"did:cow:{hash_hex}"
-
-def parse_initial_state(state_bytes: bytes) -> tuple[str, str]:
-    """
-    Parse initial state blob.
-    
-    Returns: (controller_hex, wrapped_did)
-    """
-    controller_bytes = state_bytes[:20]
-    wrapped_did_bytes = state_bytes[20:]
-    
-    controller_hex = controller_bytes.hex()
-    wrapped_did = wrapped_did_bytes.decode('utf-8')
-    
-    return controller_hex, wrapped_did
-
-# Example
-controller = "742d35Cc6634C0532925a3b844Bc9e7595f0bEb"
-wrapped = "did:web:example.com"
-
-did = create_did_tlc(controller, wrapped)
-print(did)
-# Output: did:cow:8b7df143d91c716ecfa5fc1730022f6b421b05cedee8fd52b1fc65a96030ad52
-
-# Verify
-state_blob = bytes.fromhex(controller) + wrapped.encode('utf-8')
-parsed_controller, parsed_wrapped = parse_initial_state(state_blob)
-verified_did = create_did_tlc(parsed_controller, parsed_wrapped)
-assert verified_did == did
-```
-
-## Appendix B: Acknowledgments
-
-This specification was designed in collaboration with Claude (Anthropic) on February 16, 2026.
 
 ---
 
