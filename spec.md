@@ -41,17 +41,17 @@ DID prefix: `did:cow:` (lowercase)
 
 ## 3. Method Specific Identifier
 
-Format: `did:cow:<controller_address>:<initial_wrapped_did>`
+Format: `did:cow:<initial_controller_address>:<initial_wrapped_did>`
 
 
 **Parameters:**
-- `controller_address` - Ethereum address (20 bytes, no "0x" prefix)
+- `initial_controller_address` - Ethereum address (20 bytes, no "0x" prefix)
 - `initial_wrapped_did` - UTF-8 encoded DID string
 
 ### 3.1 Example
 
 ```
-controller_address = "8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be" (20 bytes, no 0x prefix)
+initial_controller_address = "8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be" (20 bytes, no 0x prefix)
 wrapped_did = "did:web:example.com"
 
 DID = did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:web:example.com
@@ -72,8 +72,8 @@ State mutations (updates/deactivations) are standard Ethereum transactions from 
 ### 6.1 Create
 
 1. Create the wrapped DID
-2. Choose your controller address
-2. Insert `cow:<controller_address>:` after the initial `did`:.
+2. Choose your initial controller address
+2. Insert `cow:<initial_controller_address>:` after the initial `did`:.
 
 ### 6.2 Read (Resolution)
 
