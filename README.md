@@ -143,7 +143,7 @@ Strong social consensus on anti-censorship means we can be confident that the ma
 
 Updates take around 12 seconds to confirm, and longer to finalize.
 
-Although currently low, gas costs  are unpredictable: They will increase if usage grows faster than capacity, and may be subject to sudden spikes. (DID:Cow updates cost 40,000 to 100,000 per update depending on DID length and whether the account has already been registered on-chain.)
+Although currently low, gas costs  are unpredictable: They will increase if usage grows faster than capacity, and may be subject to sudden spikes. DID:Cow updates cost 40,000 to 100,000 per update depending on DID length and whether the account has already been registered on-chain. This is roughly equivalent to the cost of a transferring a token.
 
 ## 8. Privacy Considerations
 
