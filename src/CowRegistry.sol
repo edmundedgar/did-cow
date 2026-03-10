@@ -32,6 +32,15 @@ contract CowRegistry {
         emit ControllerUpdated(_cowHash, _controller);
     }
 
+    function deactivateByHash(bytes32 _cowHash) public {
+        require(msg.sender == cows[_cowHash].controller);
+
+        cows[_cowHash].wrappedDID = DEACTIVATED;
+        cows[_cowHash].controller = address(0);
+
+        emit CowDeactivated(_cowHash);
+    }
+
     function calculateCowHash(address _controller, string memory _wrappedDID) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(_controller, _wrappedDID));
     }
@@ -70,12 +79,8 @@ contract CowRegistry {
         updateControllerByHash(cowHash, _newController);
     }
 
-    function deactivate(bytes32 _cowHash) external {
-        require(msg.sender == cows[_cowHash].controller);
-
-        cows[_cowHash].wrappedDID = DEACTIVATED;
-        cows[_cowHash].controller = address(0);
-
-        emit CowDeactivated(_cowHash);
+    function deactivate(address _controller, string memory _wrappedDID) external {
+        bytes32 cowHash = _ensureCowInitialized(_controller, _wrappedDID);
+        deactivateByHash(cowHash);
     }
 }

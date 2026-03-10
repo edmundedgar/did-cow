@@ -272,12 +272,10 @@ def deactivate(did):
     contract = _contract(w3)
     account = _account(w3)
 
-    cow_hash = contract.functions.calculateCowHash(
+    tx = contract.functions.deactivate(
         _controller_address(controller_hex),
         initial_wrapped,
-    ).call()
-
-    tx = contract.functions.deactivate(cow_hash).build_transaction({"from": account.address})
+    ).build_transaction({"from": account.address})
 
     _send(w3, account, tx)
     click.echo("deactivated.")

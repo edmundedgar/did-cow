@@ -175,7 +175,8 @@ Deployed on Sepolia testnet: [`0x8bd78c8CdCcF951169bbF964A0aCC241Be63B05f`](http
 - `updateWrappedDIDByHash(cowHash, newWrappedDID)` — update wrapped DID by pre-computed hash
 - `updateController(controller, wrappedDID, newController)` — transfer control, registering if needed
 - `updateControllerByHash(cowHash, newController)` — transfer control by pre-computed hash
-- `deactivate(cowHash)` — permanently deactivate
+- `deactivate(controller, wrappedDID)` — permanently deactivate, registering if needed
+- `deactivateByHash(cowHash)` — permanently deactivate by pre-computed hash
 
 **CLI tool (`cli/cow.py`):**
 - `resolve <did>` — resolve to current state and fetch wrapped DID document

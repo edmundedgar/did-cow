@@ -294,11 +294,12 @@ contract CowRegistryUpdateTest is Test {
     }
 
     function test_updateWrappedDID_rejectsAfterDeactivation() public {
-        bytes32 cowHash = _init(controller1, plcDID1);
+        _init(controller1, plcDID1);
 
         vm.prank(controller1);
-        registry.deactivate(cowHash);
+        registry.deactivate(controller1, plcDID1);
 
+        bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
         vm.prank(controller1);
         vm.expectRevert();
         registry.updateWrappedDIDByHash(cowHash, plcDID2);
