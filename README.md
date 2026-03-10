@@ -28,7 +28,7 @@ Existing DID methods have trade-offs:
 - **did:plc** - Dependency on a centralized sequencer (plc.directory) which can censor updates and/or create malicious reorgs.
 - **did:ethr** - Gas costs for all updates.
 
-Migration between DIDs is not possible, so your did:web identity only lasts as long as your control of your domain does, and your did:plc identity only lasts until the centralized did:plc starts acting dishonestly.
+Migration between DIDs is not possible, so your did:web identity only lasts as long as your control of your domain does, and your did:plc identity only lasts until the centralized did:plc server starts acting dishonestly.
 
 We propose that users continue to use these methods for day-to-day updates, but wrap them in a blockchain-managed identity to enable migration between them.
 
