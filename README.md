@@ -7,7 +7,9 @@
 
 The `did:cow` method (Consensus Ownership Wrapper) provides a persistent, decentralized, censorship-proof wrapper around other DID methods.
 
-It stores changes of control and migrations between wrapped DIDs on the Ethereum blockchain, providing strong anti-censorship and anti-reorg guarantees while avoiding the need to send blockchain transactions for initial account creation or day-to-day updates.
+It stores changes of control and migrations between wrapped DIDs on the Ethereum blockchain, affording users strong anti-censorship and anti-reorg guarantees even if the wrapped DIDs lack these properties. 
+
+It is designed limit the need to send blockchain transactions to changes of control and migrations, leaving cheaper and/or more convenient options to the wrapped DID systems for initial account creation or day-to-day updates.
 
 ## Status of This Document
 
@@ -23,15 +25,17 @@ Existing DID methods have trade-offs:
 - **did:plc** - Dependency on a centralized sequencer (Bluesky's PLC server)
 - **did:ethr** - Gas costs for all updates
 
-Migrating between methods breaks all existing references. `did:cow` provides a stable wrapper.
+Migration between DIDs is not possible, so your DID:Web identity only lasts as long as your control of your domain does, and your DID:PLC identity only lasts until the centralized DID:PLC starts acting dishonestly.
+
+We propose that users continue to use these methods for day-to-day updates, but wrap them in a blockchain-managed identity to enable migration between them.
 
 ### 1.2 Design Goals
 
-1. **Decentralized** - No central registry dependency
+1. **Decentralized** - No trusted third-party responsible for ultimate resolution
 2. **Zero-cost creation** - No blockchain transaction to create
 3. **Method agnostic** - Any DID method can be wrapped
 4. **Transferable** - Controller can be changed
-5. **Composable Control** - Automatic compatibility with multisig and decentralized organization tooling such as Gnosis Safe
+5. **Composable Control** - Controller can be an arbitrary computer program, allowing sophisticted custom logic and compatibility with multisig and decentralized organization tooling such as Gnosis Safe
 6. **Minimal dependencies** - An Ethereum RPC endpoint is required to resolve, but you should not need other infrastructure such as an indexer.
 
 ## 2. DID Method Name
@@ -48,9 +52,9 @@ Format: `did:cow:<initial_controller_address>:<initial_wrapped_did>`
 - `initial_controller_address` - Ethereum address (20 bytes, no "0x" prefix)
 - `initial_wrapped_did` - The wrapped DID with its leading `did:` stripped, e.g. `web:example.com` rather than `did:web:example.com`
 
-The `did:` prefix is omitted from the wrapped DID portion of the identifier because it is already implied by the DID syntax. This also reduces on-chain storage costs.
+### 3 Examples
 
-### 3.1 Example
+### 3.1 An initial DID:Web ID
 
 ```
 initial_controller_address = "8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be"
@@ -59,15 +63,23 @@ wrapped_did = "did:web:example.com"
 DID = did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:web:example.com
 ```
 
+### 3.2 An initial DID:PLC ID
+
+```
+initial_controller_address = "8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be"
+wrapped_did = "did:plc:pyzlzqt6b2nyrha7smfry6rv"
+
+DID = did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:plc:pyzlzqt6b2nyrha7smfry6rv
+```
+
+
 ## 5. Blockchain Transaction Model
 
-State mutations (updates/deactivations) are standard Ethereum transactions from the controller address.
+State mutations (updates/deactivations) are standard Ethereum transactions from the controller address. The controller can be an Externally Owned Account (controlled by a single key) or a smart contract (controlled by multiple keys and/or custom logic).
 
-1. Controller creates transaction with operation data
-2. Controller signs with Ethereum key
-3. Transaction broadcast to Ethereum
-4. Smart contract validates: `msg.sender == current_controller`
-5. State updated or transaction reverts
+1. A user sends a transaction either from the controller or calling the controller
+2. The COW registry contract validates: `msg.sender == current_controller`
+3. State updated or transaction reverts
 
 ## 6. CRUD Operations
 
@@ -79,12 +91,14 @@ State mutations (updates/deactivations) are standard Ethereum transactions from 
 
 ### 6.2 Read (Resolution)
 
-1. Call `resolveCow(initial_controller_address, initial_wrapped_did)` on the registry contract
-2. If no on-chain record exists, resolve the wrapped DID from the identifier directly
-3. If an on-chain record exists, prepend `did:` to the returned wrapped DID value and resolve that
-4. If the record is deactivated, return deactivated status
+1. Call `resolveCow(initial_controller_address, initial_wrapped_did)` on the registry contract 
 
-Resolved DID document includes the wrapped DID's content plus wrapper metadata.
+The Cow Registry smart contract performs the following steps:
+1.1. If no on-chain record exists, resolve the wrapped DID from the identifier directly
+1.2. If an on-chain record exists, prepend `did:` to the returned wrapped DID value and resolve that
+1.3. If the record exists but has been deactivated, return deactivated status
+
+2. Resolve the wrapped DID as per that DID system's resolution method.
 
 ### 6.3 Update
 
@@ -96,13 +110,13 @@ If the cow has not been registered on-chain yet, `updateWrappedDID` and `updateC
 
 ### 6.4 Deactivate
 
-Permanent. On-chain transaction from current controller calling `deactivate(cowHash)`.
+An on-chain transaction from current controller calling `deactivate(cowHash)` permanently deactivates the did:cow ID.
 
-Sets the controller address to `0x0` and the stored wrapped DID to `:`.
+It sets the controller address to `0x0` and the stored wrapped DID to `:`.
 
 After deactivation, the DID resolves to deactivated status and cannot be reactivated.
 
-Note: It is permitted to set the controller to `0x0` via `updateController` without deactivating, in which case the DID continues to resolve but can never be updated or deactivated.
+NB: It is permitted to set the controller to `0x0` via `updateController` without deactivating, in which case the DID continues to resolve but can never be updated or deactivated.
 
 ## 7. Security Considerations
 
@@ -114,18 +128,24 @@ The controller address inherits all the security considerations of any other Eth
 
 The did:cow address inherits all security properties of wrapped DID.
 - did:web → DNS hijacking risk
-- did:key → no rotation
-- did:plc → key compromise, trusted central party risk
+- did:key → no rotation ability
+- did:plc → key compromise, risk of abuse by the trusted central server
 
-However, since users can switch to another wrapped DID they can recover from a compromise of the wrapped DID, and also exit in circumstances where the wrapped DID appears unreliable.
+However, since users can switch to another wrapped DID they can recover from a compromise of the wrapped DID, and also exit in circumstances where the wrapped DID appears likely to become unreliable in future.
 
 ### 7.3 Blockchain Dependencies
 
 **Why Ethereum:**
 
-High security, established ecosystem, established tooling for multisig and organizational control. Strong social consensus on anti-censorship means we can be confident that the main Ethereum chain, or failing that a viable fork of the Ethereum chain, will continue accepting updates without censorship for the foreseeable future.
+Ethereum offers high security, an established ecosystem and well-supported tooling for multisig and organizational control. 
 
-**Tradeoffs:** Gas costs (25–100k gas per update depending on DID length and whether registration is included), ~12 second confirmation
+Strong social consensus on anti-censorship means we can be confident that the main Ethereum chain, or failing that a viable fork of the Ethereum chain, will continue accepting updates without censorship for the foreseeable future.
+
+**Trade-offs:** 
+
+Updates take around 12 seconds to confirm, and longer to finalize.
+
+Although currently low, gas costs  are unpredictable: They will increase if usage grows faster than capacity, and may be subject to sudden spikes. (DID:Cow updates cost 40,000 to 100,000 per update depending on DID length and whether the account has already been registered on-chain.)
 
 ## 8. Privacy Considerations
 
@@ -135,7 +155,7 @@ High security, established ecosystem, established tooling for multisig and organ
 
 ### 8.2 On-Chain Metadata
 
-All updates permanently public with timestamps. Creates an audit trail of updates, previous/new wrapped DIDs, and controller history.
+All updates are permanently public with timestamps. This creates an audit trail of updates, previous/new wrapped DIDs, and controller history.
 
 ## 9. Reference Implementation
 
@@ -225,7 +245,7 @@ Resolved DID Document:
 
 DIDs are intended to be permanent identifiers. Using a wrapper implies that the wrapped DID is not in fact a permanent identifier.
 
-We consider this to illuminate a problem with the wrapped DIDs, rather than with this proposal. A permanent wrapper is required because users cannot be sufficiently confident in the permanence of their existing options.
+We consider this to illuminate a problem with the existing DIDs, rather than with this proposal. A permanent wrapper is required because users cannot be sufficiently confident in the permanence of their existing options.
 
 ## 13. References
 
