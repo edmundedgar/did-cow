@@ -5,8 +5,9 @@
 
 ## Abstract
 
-The `did:cow` method (Consensus Ownership Wrapper) provides persistent wrappers around other DID methods, enabling rotation and migration without breaking existing references. 
-It stores changes of control (done currently done with `rotationKeys` in DID:PLC) on the Ethereum blockchain.
+The `did:cow` method (Consensus Ownership Wrapper) provides persistent wrappers around other DID methods. 
+
+It stores migrations between DIDs and changes of control on the Ethereum mainnet, providing strong anti-censorship and anti-reorg guarantees while avoiding the need to send blockchain transactions for initial account creation or day-to-day updates.
 
 ## Status of This Document
 
@@ -16,7 +17,7 @@ This is a draft specification and may be updated, replaced, or obsoleted at any 
 
 ### 1.1 Motivation
 
-Existing DID methods have tradeoffs:
+Existing DID methods have trade-offs:
 - **did:key** - No rotation or recovery
 - **did:web** - Domain dependency, if you lose control of your domain you lose control of your identity
 - **did:plc** - Dependency on a centralized sequencer (Bluesky's PLC server)
@@ -26,10 +27,9 @@ Migrating between methods breaks all existing references. `did:cow` provides a s
 
 ### 1.2 Design Goals
 
-1. **Persistent** - Wrapper DID never changes
+1. **Decentralized** - No central registry dependency
 2. **Zero-cost creation** - No blockchain transaction to create
-3. **Method agnostic** - Wraps any DID method
-4. **Decentralized** - No central registry dependency
+3. **Method agnostic** - Any DID method can be wraped
 5. **Transferable** - Controller can be changed
 6. **Composible Control** - Automatic compatibility with multisig and decentralized organization tooling such as Gnosis Safe.
 
@@ -95,7 +95,9 @@ Permanent. On-chain transaction from current controller.
 
 Set the controller address to `0x` and the wrapped DID value to `did::`.
 
-After deactivation, DID resolves to deactivated status. Cannot be reactivated.
+After deactivation, DID resolves to deactivated status and cannot be reactivated.
+
+Note: It is permitted to set the controller address to 0x without deactivating the record, in which case it will continue to resolve but nobody will be able to update it.
 
 ## 7. Security Considerations
 
@@ -110,7 +112,7 @@ The did:cow address inherits all security properties of wrapped DID.
 - did:key → no rotation
 - did:plc → trust in Bluesky's directory
 
-However, since users can switch to another wrapped DID they can recover a compromise of the wrapped DID, and also exit in circumstances where the wrapped DID appears unreliable.
+However, since users can switch to another wrapped DID they can recover from a compromise of the wrapped DID, and also exit in circumstances where the wrapped DID appears unreliable.
 
 ### 7.3 Blockchain Dependencies
 
