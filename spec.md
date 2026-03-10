@@ -93,7 +93,7 @@ The initial update
 
 Permanent. On-chain transaction from current controller.
 
-Set the controller address to `0x` and the wrapped DID value to `did:`.
+Set the controller address to `0x` and the wrapped DID value to `did::`.
 
 After deactivation, DID resolves to deactivated status. Cannot be reactivated.
 
