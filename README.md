@@ -25,7 +25,7 @@ This is a draft specification and may be updated, replaced, or obsoleted at any 
 Existing DID methods have trade-offs:
 - **did:key** - No rotation or recovery.
 - **did:web** - Domain dependency, if you lose control of your domain you lose control of your identity.
-- **did:plc** - Dependency on a centralized sequencer (Bluesky's PLC server).
+- **did:plc** - Dependency on a centralized sequencer (plc.directory) which can censor updates and/or create malicious reorgs.
 - **did:ethr** - Gas costs for all updates.
 
 Migration between DIDs is not possible, so your DID:Web identity only lasts as long as your control of your domain does, and your DID:PLC identity only lasts until the centralized DID:PLC starts acting dishonestly.
