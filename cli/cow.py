@@ -180,26 +180,27 @@ def resolve(did, no_doc):
     w3 = _w3()
     contract = _contract(w3)
 
-    controller, wrapped_did = contract.functions.resolveCow(
+    wrapped_did, controller = contract.functions.resolveCow(
         _controller_address(controller_hex),
         initial_wrapped,
     ).call()
 
-    if wrapped_did == ":":
+    if wrapped_did == "did::":
         click.echo("status:     deactivated")
         return
 
-    on_chain = wrapped_did != initial_wrapped or controller != _controller_address(controller_hex)
+    initial_full = f"did:{initial_wrapped}"
+    on_chain = wrapped_did != initial_full or controller != _controller_address(controller_hex)
     if not on_chain:
         click.echo("status:     not yet registered on-chain")
-        click.echo(f"wrapped:    did:{wrapped_did}  (from DID)")
+        click.echo(f"wrapped:    {wrapped_did}  (from DID)")
         click.echo(f"controller: {controller}  (initial)")
     else:
         click.echo("status:     active")
-        click.echo(f"wrapped:    did:{wrapped_did}")
+        click.echo(f"wrapped:    {wrapped_did}")
         click.echo(f"controller: {controller}")
 
-    current_wrapped = wrapped_did
+    current_wrapped = _strip_did_prefix(wrapped_did)
 
     if not no_doc:
         click.echo("")
