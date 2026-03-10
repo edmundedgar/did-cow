@@ -74,9 +74,9 @@ wrapped_did = "did:plc:pyzlzqt6b2nyrha7smfry6rv"
 DID = did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:plc:pyzlzqt6b2nyrha7smfry6rv
 ```
 
-## 5. Blockchain Transaction Model
+## 5. Blockchain Transactions
 
-State mutations (updates/deactivations) are standard Ethereum calls made from the controller address. The controller can be an Externally Owned Account (controlled by a single cryptographic key) or a smart contract (controlled by multiple keys and/or custom logic).
+State mutations (updates/deactivations) are controlled by standard Ethereum calls made from the controller address. The controller can be an Externally Owned Account (controlled by a single cryptographic key) or a smart contract (controlled by multiple keys and/or custom logic).
 
 1. A user sends a transaction either from the controller or calling the controller.
 2. The did:cow registry contract validates: `msg.sender == current_controller`.
