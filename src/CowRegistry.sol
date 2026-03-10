@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.28;
 
 contract CowRegistry {
 
@@ -17,55 +17,55 @@ contract CowRegistry {
     event ControllerUpdated(bytes32 indexed cowHash, address controller);
     event WrappedDIDUpdated(bytes32 indexed cowHash, string wrappedDID);
 
-    function updateWrappedDIDByHash(bytes32 cowHash, string memory wrappedDID) public {
-        require(msg.sender == cows[cowHash].controller);
-        require(bytes(wrappedDID).length > 5, "Use deactivate() to deactivate");
+    function updateWrappedDIDByHash(bytes32 _cowHash, string memory _wrappedDID) public {
+        require(msg.sender == cows[_cowHash].controller);
+        require(bytes(_wrappedDID).length > 5, "Use deactivate() to deactivate");
 
-        cows[cowHash].wrappedDID = wrappedDID;
-        emit WrappedDIDUpdated(cowHash, wrappedDID);
+        cows[_cowHash].wrappedDID = _wrappedDID;
+        emit WrappedDIDUpdated(_cowHash, _wrappedDID);
     }
 
-    function updateControllerByHash(bytes32 cowHash, address controller) public {
-        require(msg.sender == cows[cowHash].controller);
+    function updateControllerByHash(bytes32 _cowHash, address _controller) public {
+        require(msg.sender == cows[_cowHash].controller);
 
-        cows[cowHash].controller = controller;
-        emit ControllerUpdated(cowHash, controller);
+        cows[_cowHash].controller = _controller;
+        emit ControllerUpdated(_cowHash, _controller);
     }
 
-    function calculateCowHash(address controller, string memory wrappedDID) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(controller, wrappedDID));
+    function calculateCowHash(address _controller, string memory _wrappedDID) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(_controller, _wrappedDID));
     }
 
-    function _ensureCowInitialized(address controller, string memory wrappedDID) internal returns (bytes32 cowHash) {
-        cowHash = calculateCowHash(controller, wrappedDID);
+    function _ensureCowInitialized(address _controller, string memory _wrappedDID) internal returns (bytes32 cowHash) {
+        cowHash = calculateCowHash(_controller, _wrappedDID);
         if (bytes(cows[cowHash].wrappedDID).length == 0) {
-            cows[cowHash] = Cow(controller, wrappedDID);
-            emit CowInitialized(cowHash, controller, wrappedDID);
+            cows[cowHash] = Cow(_controller, _wrappedDID);
+            emit CowInitialized(cowHash, _controller, _wrappedDID);
         }
         return cowHash;
     }
 
     // You don't particularly need to call this, you can leave it until you make an update
-    function initializeCow(address controller, string memory wrappedDID) external {
-        _ensureCowInitialized(controller, wrappedDID);
+    function initializeCow(address _controller, string memory _wrappedDID) external {
+        _ensureCowInitialized(_controller, _wrappedDID);
     }
 
-    function updateWrappedDID(address controller, string memory wrappedDID, string memory newWrappedDID) public {
-        bytes32 cowHash = _ensureCowInitialized(controller, wrappedDID);
-        updateWrappedDIDByHash(cowHash, newWrappedDID);
+    function updateWrappedDID(address _controller, string memory _wrappedDID, string memory _newWrappedDID) external {
+        bytes32 cowHash = _ensureCowInitialized(_controller, _wrappedDID);
+        updateWrappedDIDByHash(cowHash, _newWrappedDID);
     }
 
-    function updateController(address controller, string memory wrappedDID, address newController) public {
-        bytes32 cowHash = _ensureCowInitialized(controller, wrappedDID);
-        updateControllerByHash(cowHash, newController);
+    function updateController(address _controller, string memory _wrappedDID, address _newController) external {
+        bytes32 cowHash = _ensureCowInitialized(_controller, _wrappedDID);
+        updateControllerByHash(cowHash, _newController);
     }
 
-    function deactivate(bytes32 cowHash) external {
-        require(msg.sender == cows[cowHash].controller);
+    function deactivate(bytes32 _cowHash) external {
+        require(msg.sender == cows[_cowHash].controller);
 
-        cows[cowHash].wrappedDID = DEACTIVATED;
-        cows[cowHash].controller = address(0);
+        cows[_cowHash].wrappedDID = DEACTIVATED;
+        cows[_cowHash].controller = address(0);
 
-        emit CowDeactivated(cowHash);
+        emit CowDeactivated(_cowHash);
     }
 }
