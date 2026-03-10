@@ -28,14 +28,14 @@ Existing DID methods have trade-offs:
 - **did:plc** - Dependency on a centralized sequencer (plc.directory) which can censor updates and/or create malicious reorgs.
 - **did:ethr** - Gas costs for all updates.
 
-Migration between DIDs is not possible, so your DID:Web identity only lasts as long as your control of your domain does, and your DID:PLC identity only lasts until the centralized DID:PLC starts acting dishonestly.
+Migration between DIDs is not possible, so your did:web identity only lasts as long as your control of your domain does, and your did:plc identity only lasts until the centralized did:plc starts acting dishonestly.
 
 We propose that users continue to use these methods for day-to-day updates, but wrap them in a blockchain-managed identity to enable migration between them.
 
 ### 1.2 Design Goals
 
 1. **Decentralized** - No trusted third-party responsible for ultimate resolution.
-2. **Zero-cost creation** - No blockchain transaction should be required to create a DID:COW ID.
+2. **Zero-cost creation** - No blockchain transaction should be required to create a did:cow ID.
 3. **Method agnostic** - Any DID method can be wrapped.
 4. **Transferable** - The controller used for a did:cow ID can be replaced. If using a smart contract as controller, the controller can be retained but access to the controller changed.
 5. **Composable Control** - The controller can be an arbitrary computer program, allowing sophisticted custom logic and compatibility with multisig and decentralized organization tooling such as [Safe](https://docs.safe.global/home/what-is-safe).
@@ -57,7 +57,7 @@ Format: `did:cow:<initial_controller_address>:<initial_wrapped_did>`
 
 ### 3 Examples
 
-### 3.1 An initial DID:Web ID
+### 3.1 An initial did:web ID
 
 ```
 initial_controller_address = "8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be"
@@ -65,7 +65,7 @@ wrapped_did = "did:web:example.com"
 
 DID = did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:web:example.com
 ```
-### 3.2 An initial DID:PLC ID
+### 3.2 An initial did:plc ID
 
 ```
 initial_controller_address = "8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be"
@@ -79,7 +79,7 @@ DID = did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:plc:pyzlzqt6b2nyrha7smfry
 State mutations (updates/deactivations) are standard Ethereum calls made from the controller address. The controller can be an Externally Owned Account (controlled by a single cryptographic key) or a smart contract (controlled by multiple keys and/or custom logic).
 
 1. A user sends a transaction either from the controller or calling the controller.
-2. The COW registry contract validates: `msg.sender == current_controller`.
+2. The did:cow registry contract validates: `msg.sender == current_controller`.
 3. Either the state is updated or the transaction reverts.
 
 ## 6. CRUD Operations
@@ -94,7 +94,7 @@ State mutations (updates/deactivations) are standard Ethereum calls made from th
 
 1. Call `resolveCow(initial_controller_address, initial_wrapped_did)` against the registry contract.
 
-The Cow Registry smart contract performs the following steps:
+The did:cow registry contract performs the following steps:
 
 - If no on-chain record exists, resolve the wrapped DID from the identifier directly.
 - If an on-chain record exists, prepend `did:` to the returned wrapped DID value and resolve that.
@@ -147,11 +147,11 @@ Strong social consensus on anti-censorship means we can reasonably confident tha
 
 *Time until finality:* Updates typically take up to 12 seconds to confirm, and longer to finalize.
 
-*Cost*: A system requiring consensus will typically have capacity limits. Systems aiming for censorship resistance cannot exercise discretion about which transactions are worthwhile, so they typically regulate usage by charging fees. Usage is unpredictable, so costs are also unpredictable: Although Ethereum gas prices are currently low, they may increase if usage grows faster than capacity, and may also be subject to sudden spikes. DID:Cow updates cost 40,000 to 100,000 gas per update depending on DID length and whether the account has already been registered on-chain. This is roughly equivalent to the cost of a transferring a token.
+*Cost*: A system requiring consensus will typically have capacity limits. Systems aiming for censorship resistance cannot exercise discretion about which transactions are worthwhile, so they typically regulate usage by charging fees. Usage is unpredictable, so costs are also unpredictable: Although Ethereum gas prices are currently low, they may increase if usage grows faster than capacity, and may also be subject to sudden spikes. did:cow updates cost 40,000 to 100,000 gas per update depending on DID length and whether the account has already been registered on-chain. This is roughly equivalent to the cost of a transferring a token.
 
-**Why only one chain:** 
+**Why only one chain:**
 
-Some identity standards support multiple chains, for example by putting a Chain ID in the identifier. DID:Cow supports only a single chain, to avoid the additional complexity, the longer identifiers, and the requirement for resolvers to handle multiple RPC endpoints.
+Some identity standards support multiple chains, for example by putting a Chain ID in the identifier. did:cow supports only a single chain, to avoid the additional complexity, the longer identifiers, and the requirement for resolvers to handle multiple RPC endpoints.
 
 ## 8. Privacy Considerations
 
