@@ -45,6 +45,16 @@ contract CowRegistry {
         return cowHash;
     }
 
+    function resolveCow(address _controller, string memory _wrappedDID) external view returns (address controller, string memory wrappedDID) {
+        bytes32 cowHash = calculateCowHash(_controller, _wrappedDID);
+        Cow storage cow = cows[cowHash];
+        if (bytes(cow.wrappedDID).length == 0) {
+            // Not yet on-chain — initial values are authoritative
+            return (_controller, _wrappedDID);
+        }
+        return (cow.controller, cow.wrappedDID);
+    }
+
     // You don't particularly need to call this, you can leave it until you make an update
     function initializeCow(address _controller, string memory _wrappedDID) external {
         _ensureCowInitialized(_controller, _wrappedDID);

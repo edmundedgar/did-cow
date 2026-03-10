@@ -180,28 +180,26 @@ def resolve(did, no_doc):
     w3 = _w3()
     contract = _contract(w3)
 
-    cow_hash = contract.functions.calculateCowHash(
+    controller, wrapped_did = contract.functions.resolveCow(
         _controller_address(controller_hex),
         initial_wrapped,
     ).call()
-
-    controller, wrapped_did = contract.functions.cows(cow_hash).call()
 
     if wrapped_did == ":":
         click.echo("status:     deactivated")
         return
 
-    if wrapped_did == "":
-        # No on-chain state — initial values from the DID string are authoritative
+    on_chain = wrapped_did != initial_wrapped or controller != _controller_address(controller_hex)
+    if not on_chain:
         click.echo("status:     not yet registered on-chain")
-        click.echo(f"wrapped:    did:{initial_wrapped}  (from DID)")
-        click.echo(f"controller: {_controller_address(controller_hex)}  (initial)")
-        current_wrapped = initial_wrapped
+        click.echo(f"wrapped:    did:{wrapped_did}  (from DID)")
+        click.echo(f"controller: {controller}  (initial)")
     else:
         click.echo("status:     active")
         click.echo(f"wrapped:    did:{wrapped_did}")
         click.echo(f"controller: {controller}")
-        current_wrapped = wrapped_did
+
+    current_wrapped = wrapped_did
 
     if not no_doc:
         click.echo("")

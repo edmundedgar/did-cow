@@ -108,14 +108,14 @@ Note: It is permitted to set the controller to `0x0` via `updateController` with
 
 ### 7.1 Controller
 
-The controller address inherits all the security considerations of any other Ethereum address.
+The controller address inherits all the security considerations of any other Ethereum address. Addresses can be compromised by phishing, private key leakage etc.
 
 ### 7.2 Wrapped DID Dependence
 
 The did:cow address inherits all security properties of wrapped DID.
 - did:web → DNS hijacking risk
 - did:key → no rotation
-- did:plc → trust in Bluesky's directory
+- did:plc → key compromise, trusted central party risk
 
 However, since users can switch to another wrapped DID they can recover from a compromise of the wrapped DID, and also exit in circumstances where the wrapped DID appears unreliable.
 
@@ -139,10 +139,11 @@ All updates permanently public with timestamps. Creates an audit trail of update
 
 ## 9. Reference Implementation
 
-Deployed on Sepolia testnet: `0x1e0de1f90fB0cCC69174935Dd90481D7c19Cf04d`
+Deployed on Sepolia testnet: `0x8bd78c8CdCcF951169bbF964A0aCC241Be63B05f`
 
 **Contract functions (`CowRegistry.sol`):**
 - `calculateCowHash(controller, wrappedDID)` — derive the registry key for a cow
+- `resolveCow(controller, wrappedDID)` — return current controller and wrapped DID without needing to pre-compute the hash
 - `initializeCow(controller, wrappedDID)` — optionally pre-register before first update
 - `updateWrappedDID(controller, wrappedDID, newWrappedDID)` — update wrapped DID, registering if needed
 - `updateWrappedDIDByHash(cowHash, newWrappedDID)` — update wrapped DID by pre-computed hash
