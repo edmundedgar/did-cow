@@ -108,11 +108,11 @@ Send an on-chain transaction from the current controller to either:
 - `updateWrappedDID` / `updateWrappedDIDByHash` — change the wrapped DID
 - `updateController` / `updateControllerByHash` — transfer control to a new address
 
-If the cow has not been registered on-chain yet, `updateWrappedDID` and `updateController` will register it automatically in the same transaction.
+If the did:cow ID has not been registered on-chain yet, `updateWrappedDID` and `updateController` will register it automatically in the same transaction.
 
 ### 6.4 Deactivate
 
-Call `deactivate(initial_controller_address, initial_wrapped_did)` from the current controller to permanently deactivate a did:cow ID. If the cow has not been registered on-chain yet, it will be registered automatically in the same transaction.
+Call `deactivate(initial_controller_address, initial_wrapped_did)` from the current controller to permanently deactivate a did:cow ID. If the did:cow ID has not been registered on-chain yet, it will be registered automatically in the same transaction.
 
 After deactivation, `resolveCow` returns an empty string and the DID cannot be reactivated.
 
@@ -166,7 +166,7 @@ All updates are permanently public with timestamps. This creates an audit trail 
 Deployed on Sepolia testnet: [`0x8bd78c8CdCcF951169bbF964A0aCC241Be63B05f`](https://sepolia.etherscan.io/address/0x8bd78c8CdCcF951169bbF964A0aCC241Be63B05f)
 
 **Contract functions (`CowRegistry.sol`):**
-- `calculateCowHash(controller, wrappedDID)` — derive the registry key for a cow
+- `calculateCowHash(controller, wrappedDID)` — derive the registry key for a did:cow ID
 - `resolveCow(controller, wrappedDID)` — return current controller and wrapped DID without needing to pre-compute the hash
 - `initializeCow(controller, wrappedDID)` — optionally pre-register before first update
 - `updateWrappedDID(controller, wrappedDID, newWrappedDID)` — update wrapped DID, registering if needed
