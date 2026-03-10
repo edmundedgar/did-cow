@@ -185,7 +185,7 @@ def resolve(did, no_doc):
         initial_wrapped,
     ).call()
 
-    if wrapped_did == "did::":
+    if wrapped_did == "":
         click.echo("status:     deactivated")
         return
 

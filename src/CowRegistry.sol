@@ -98,13 +98,16 @@ contract CowRegistry {
     /// @dev Returns the initial values if the cow has never been registered on-chain.
     /// @param _controller The initial controller address from the did:cow identifier.
     /// @param _wrappedDID The initial wrapped DID from the did:cow identifier, without "did:".
-    /// @return wrappedDID The current full wrapped DID (with "did:" prepended), or "did::" if deactivated.
+    /// @return wrappedDID The current full wrapped DID (with "did:" prepended), or empty string if deactivated.
     /// @return controller The current controller address.
     function resolveCow(address _controller, string memory _wrappedDID) external view returns (string memory wrappedDID, address controller) {
         bytes32 cowHash = calculateCowHash(_controller, _wrappedDID);
         Cow storage cow = cows[cowHash];
         if (bytes(cow.wrappedDID).length == 0) {
             return (string.concat("did:", _wrappedDID), _controller);
+        }
+        if (keccak256(bytes(cow.wrappedDID)) == keccak256(bytes(DEACTIVATED))) {
+            return ("", address(0));
         }
         return (string.concat("did:", cow.wrappedDID), cow.controller);
     }
