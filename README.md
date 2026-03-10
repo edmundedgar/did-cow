@@ -34,7 +34,7 @@ We propose that users continue to use these methods for day-to-day updates, but 
 1. **Decentralized** - No trusted third-party responsible for ultimate resolution
 2. **Zero-cost creation** - No blockchain transaction should be required to create a DID:COW ID.
 3. **Method agnostic** - Any DID method can be wrapped
-4. **Transferable** - The controller used for a did:cow ID can be replaced, or in the case of a smart contract the controller retained but access to the controller changed
+4. **Transferable** - The controller used for a did:cow ID can be replaced. If using a smart contract as controller, the controller can be retained but access to the controller changed
 5. **Composable Control** - The controller can be an arbitrary computer program, allowing sophisticted custom logic and compatibility with multisig and decentralized organization tooling such as Gnosis Safe
 6. **Minimal dependencies** - An Ethereum RPC endpoint is required to resolve, but you should not need additional infrastructure such as an indexer.
 
