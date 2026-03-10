@@ -128,10 +128,10 @@ The controller address inherits all the security considerations of any other Eth
 
 ### 7.2 Wrapped DID Dependence
 
-The did:cow address inherits all security properties of wrapped DID.
-- did:web → DNS hijacking risk
-- did:key → no rotation ability
-- did:plc → key compromise, risk of abuse by the trusted central server
+The did:cow address inherits the security risks of the wrapped DID:
+- did:web: DNS hijacking risk
+- did:key: no rotation ability
+- did:plc: key compromise, risk of abuse by the trusted central server
 
 However, since users can switch to another wrapped DID they can recover from a compromise of the wrapped DID, and also exit in circumstances where the wrapped DID appears likely to become unreliable in future.
 
@@ -139,15 +139,19 @@ However, since users can switch to another wrapped DID they can recover from a c
 
 **Why Ethereum:**
 
-Ethereum offers high security, an established ecosystem and well-supported tooling for multisig and organizational control. 
+Ethereum offers high security, an established ecosystem and well-supported tooling for multisig and organizational control. It also operates without needing proof-of-work, which many users dislike for its environmental impact.
 
-Strong social consensus on anti-censorship means we can be confident that the main Ethereum chain, or failing that a viable fork of the Ethereum chain, will continue accepting updates without censorship for the foreseeable future.
+Strong social consensus on anti-censorship means we can reasonably confident that the main Ethereum chain will continue accepting updates without censorship for the foreseeable future. We can also be highly confident that in the event that the dominant Ethereum chain lost this property, there would be a well-supported fork preserving its history that continued to have it.
 
 **Trade-offs:** 
 
 *Time until finality:* Updates typically take up to 12 seconds to confirm, and longer to finalize.
 
 *Cost*: A system requiring consensus will typically have capacity limits. Systems aiming for censorship resistance cannot exercise discretion about which transactions are worthwhile, so they typically regulate usage by charging fees. Usage is unpredictable, so costs are also unpredictable: Although Ethereum gas prices are currently low, they may increase if usage grows faster than capacity, and may also be subject to sudden spikes. DID:Cow updates cost 40,000 to 100,000 gas per update depending on DID length and whether the account has already been registered on-chain. This is roughly equivalent to the cost of a transferring a token.
+
+**Why only one chain:** 
+
+Some identity standards support multiple chains, for example by putting a Chain ID in the identifier. DID:Cow supports only a single chain, to avoid the additional complexity, the longer identifiers, and the requirement for resolvers to handle multiple RPC endpoints.
 
 ## 8. Privacy Considerations
 
