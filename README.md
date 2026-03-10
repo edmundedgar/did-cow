@@ -102,7 +102,7 @@ Sets the controller address to `0x0` and the stored wrapped DID to `:`.
 
 After deactivation, the DID resolves to deactivated status and cannot be reactivated.
 
-Note: It is permitted to transfer the controller to `0x0` via `updateController` without deactivating, in which case the DID continues to resolve but can never be updated or deactivated.
+Note: It is permitted to set the controller to `0x0` via `updateController` without deactivating, in which case the DID continues to resolve but can never be updated or deactivated.
 
 ## 7. Security Considerations
 
