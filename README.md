@@ -112,11 +112,9 @@ If the cow has not been registered on-chain yet, `updateWrappedDID` and `updateC
 
 ### 6.4 Deactivate
 
-An on-chain transaction from current controller calling `deactivate(cowHash)` permanently deactivates the did:cow ID.
+Call `deactivate(initial_controller_address, initial_wrapped_did)` from the current controller to permanently deactivate a did:cow ID. If the cow has not been registered on-chain yet, it will be registered automatically in the same transaction.
 
-It sets the controller address to `0x0` and the stored wrapped DID to `:`.
-
-After deactivation, the DID resolves to deactivated status and cannot be reactivated.
+After deactivation, `resolveCow` returns an empty string and the DID cannot be reactivated.
 
 NB: It is permitted to set the controller to `0x0` via `updateController` without deactivating, in which case the DID continues to resolve but can never be updated or deactivated.
 
