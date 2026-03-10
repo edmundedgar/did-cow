@@ -227,7 +227,7 @@ contract CowRegistryUpdateTest is Test {
         vm.prank(controller1);
         registry.deactivate(cowHash);
 
-        vm.prank(address(0));
+        vm.prank(controller1);
         vm.expectRevert();
         registry.updateWrappedDIDByHash(cowHash, plcDID2);
     }

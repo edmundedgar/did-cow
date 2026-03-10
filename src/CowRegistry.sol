@@ -17,21 +17,15 @@ contract CowRegistry {
     event ControllerUpdated(bytes32 indexed cowHash, address controller);
     event WrappedDIDUpdated(bytes32 indexed cowHash, string wrappedDID);
 
-    function _isDeactivated(bytes32 cowHash) internal view returns (bool) {
-        return keccak256(bytes(cows[cowHash].wrappedDID)) == keccak256(bytes(DEACTIVATED));
-    }
-
     function updateWrappedDIDByHash(bytes32 cowHash, string memory wrappedDID) public {
-        require(!_isDeactivated(cowHash));
         require(msg.sender == cows[cowHash].controller);
-        require(keccak256(bytes(wrappedDID)) != keccak256(bytes(DEACTIVATED)), "Use deactivate() to deactivate");
+        require(bytes(wrappedDID).length > 5, "Use deactivate() to deactivate");
 
         cows[cowHash].wrappedDID = wrappedDID;
         emit WrappedDIDUpdated(cowHash, wrappedDID);
     }
 
     function updateControllerByHash(bytes32 cowHash, address controller) public {
-        require(!_isDeactivated(cowHash));
         require(msg.sender == cows[cowHash].controller);
 
         cows[cowHash].controller = controller;
@@ -67,7 +61,6 @@ contract CowRegistry {
     }
 
     function deactivate(bytes32 cowHash) external {
-        require(!_isDeactivated(cowHash));
         require(msg.sender == cows[cowHash].controller);
 
         cows[cowHash].wrappedDID = DEACTIVATED;
