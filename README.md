@@ -163,7 +163,7 @@ All updates are permanently public with timestamps. This creates an audit trail 
 
 ## 9. Reference Implementation
 
-Deployed on Sepolia testnet: [`0x8bd78c8CdCcF951169bbF964A0aCC241Be63B05f`](https://sepolia.etherscan.io/address/0x8bd78c8CdCcF951169bbF964A0aCC241Be63B05f)
+Deployed on Sepolia testnet: [`0xc0Bc77AecfD482FCF8dac3cA0Ee059cC85C3b67a`](https://sepolia.etherscan.io/address/0xc0Bc77AecfD482FCF8dac3cA0Ee059cC85C3b67a)
 
 **Contract functions (`CowRegistry.sol`):**
 - `calculateCowHash(controller, wrappedDID)` — derive the registry key for a did:cow ID
