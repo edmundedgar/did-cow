@@ -177,7 +177,9 @@ Deployed on Sepolia testnet: [`0xc0Bc77AecfD482FCF8dac3cA0Ee059cC85C3b67a`](http
 - `deactivateByHash(cowHash)` — permanently deactivate by pre-computed hash
 
 **CLI tool (`cli/cow.py`):**
-- `resolve <did>` — resolve to current state and fetch wrapped DID document
+- `resolve <did>` — fetch the wrapped DID document
+- `describe <did>` — show on-chain state (controller, wrapped DID, registration status)
+- `initialize <did>` — register on-chain without making any updates (useful to take advantage of low-gas periods)
 - `update-wrapped <did> <newWrappedDID>` — update the wrapped DID
 - `update-controller <did> <newController>` — transfer control
 - `deactivate <did>` — permanently deactivate

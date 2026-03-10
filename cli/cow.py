@@ -168,14 +168,34 @@ def cli():
 
 @cli.command()
 @click.argument("did")
-@click.option("--no-doc", is_flag=True, help="Skip fetching the wrapped DID document.")
-def resolve(did, no_doc):
-    """Resolve a did:cow DID to its current state and wrapped DID document.
+def resolve(did):
+    """Fetch the DID document for a did:cow DID.
 
     \b
     DID format: did:cow:<controller_address>:<method>:<id>
     Example:    did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:plc:7qqsrnkn4moc2jgdxvh6aa3t
     """
+    controller_hex, initial_wrapped = _parse_cow_did(did)
+    w3 = _w3()
+    contract = _contract(w3)
+
+    wrapped_did, _ = contract.functions.resolveCow(
+        _controller_address(controller_hex),
+        initial_wrapped,
+    ).call()
+
+    if wrapped_did == "":
+        raise click.ClickException("DID is deactivated")
+
+    url, doc = _resolve_did_doc(_strip_did_prefix(wrapped_did))
+    click.echo(f"resolved from: {url}")
+    click.echo(json.dumps(doc, indent=2))
+
+
+@cli.command()
+@click.argument("did")
+def describe(did):
+    """Show the on-chain state of a did:cow DID without fetching the wrapped DID document."""
     controller_hex, initial_wrapped = _parse_cow_did(did)
     w3 = _w3()
     contract = _contract(w3)
@@ -189,24 +209,15 @@ def resolve(did, no_doc):
         click.echo("status:     deactivated")
         return
 
-    initial_full = f"did:{initial_wrapped}"
-    on_chain = wrapped_did != initial_full or controller != _controller_address(controller_hex)
-    if not on_chain:
-        click.echo("status:     not yet registered on-chain")
-        click.echo(f"wrapped:    {wrapped_did}  (from DID)")
-        click.echo(f"controller: {controller}  (initial)")
-    else:
-        click.echo("status:     active")
-        click.echo(f"wrapped:    {wrapped_did}")
-        click.echo(f"controller: {controller}")
+    cow_hash = contract.functions.calculateCowHash(
+        _controller_address(controller_hex),
+        initial_wrapped,
+    ).call()
+    registered = bytes(contract.functions.cows(cow_hash).call()[1]).decode() != ""
 
-    current_wrapped = _strip_did_prefix(wrapped_did)
-
-    if not no_doc:
-        click.echo("")
-        url, doc = _resolve_did_doc(current_wrapped)
-        click.echo(f"resolved from: {url}")
-        click.echo(json.dumps(doc, indent=2))
+    click.echo(f"status:     {'active' if registered else 'not registered on-chain'}")
+    click.echo(f"wrapped:    {wrapped_did}")
+    click.echo(f"controller: {controller}")
 
 
 @cli.command("update-wrapped")
@@ -260,6 +271,30 @@ def update_controller(did, new_controller):
 
     _send(w3, account, tx)
     click.echo(f"controller: {Web3.to_checksum_address(new_controller)}")
+
+
+@cli.command()
+@click.argument("did")
+def initialize(did):
+    """Register a did:cow on-chain without making any updates.
+
+    \b
+    Useful for locking in registration during low-gas periods before any
+    updates are needed. Has no effect if already registered.
+    """
+    controller_hex, initial_wrapped = _parse_cow_did(did)
+
+    w3 = _w3()
+    contract = _contract(w3)
+    account = _account(w3)
+
+    tx = contract.functions.initializeCow(
+        _controller_address(controller_hex),
+        initial_wrapped,
+    ).build_transaction({"from": account.address})
+
+    _send(w3, account, tx)
+    click.echo("initialized.")
 
 
 @cli.command()
