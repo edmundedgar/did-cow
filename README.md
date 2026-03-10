@@ -184,14 +184,16 @@ Deployed on Sepolia testnet: [`0x8bd78c8CdCcF951169bbF964A0aCC241Be63B05f`](http
 
 ## 10. Example DID Document
 
+This example shows a did:cow ID wrapping a did:plc identity. The resolved document is the underlying did:plc document with three modifications: the `id` is replaced with the did:cow identifier, and a `did:cow` block is added carrying the Ethereum controller address (as a did:pkh DID) and the wrapped DID for client validation.
+
 Given:
 ```
-did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:web:example.com
+did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:plc:pyzlzqt6b2nyrha7smfry6rv
 ```
 
 Wrapping:
 ```
-did:web:example.com
+did:plc:pyzlzqt6b2nyrha7smfry6rv
 ```
 
 Resolved DID Document:
@@ -199,36 +201,29 @@ Resolved DID Document:
 {
   "@context": [
     "https://www.w3.org/ns/did/v1",
-    "https://w3id.org/security/suites/jws-2020/v1"
+    "https://w3id.org/security/multikey/v1"
   ],
-  "id": "did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:web:example.com",
-  "controller": "0x8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be",
+  "id": "did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:plc:pyzlzqt6b2nyrha7smfry6rv",
+  "did:cow": {
+    "controller": "did:pkh:eip155:1:0x8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be",
+    "wrappedDid": "did:plc:pyzlzqt6b2nyrha7smfry6rv"
+  },
+  "alsoKnownAs": [
+    "at://user.bsky.social"
+  ],
   "verificationMethod": [
     {
-      "id": "did:web:example.com#key-1",
-      "type": "JsonWebKey2020",
-      "controller": "did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:web:example.com",
-      "publicKeyJwk": {
-        "kty": "EC",
-        "crv": "secp256k1",
-        "x": "...",
-        "y": "..."
-      }
+      "id": "did:plc:pyzlzqt6b2nyrha7smfry6rv#atproto",
+      "type": "Multikey",
+      "controller": "did:plc:pyzlzqt6b2nyrha7smfry6rv",
+      "publicKeyMultibase": "zQ3shRQWmWxEtxRa317rpYnVo7nWxYAsDS4mBwdDLgLfkkDtR"
     }
-  ],
-  "authentication": [
-    "did:web:example.com#key-1"
   ],
   "service": [
     {
-      "id": "#wrapper-metadata",
-      "type": "COWWrapper",
-      "serviceEndpoint": {
-        "wrapped_did": "did:web:example.com",
-        "wrapper_controller": "0x8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be",
-        "on_chain_state": true,
-        "last_updated": "2026-02-16T10:30:00Z"
-      }
+      "id": "#atproto_pds",
+      "type": "AtprotoPersonalDataServer",
+      "serviceEndpoint": "https://bsky.social"
     }
   ]
 }
