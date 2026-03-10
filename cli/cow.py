@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 import click
+import requests
 from dotenv import load_dotenv
 from web3 import Web3
 
@@ -109,6 +110,49 @@ def _send(w3, account, tx):
 
 
 # ---------------------------------------------------------------------------
+# DID document resolution
+# ---------------------------------------------------------------------------
+
+def _resolve_did_doc(wrapped_did_no_prefix):
+    """
+    Fetch the DID document for a wrapped DID (without leading 'did:').
+    Supports did:plc and did:web.
+    Returns the parsed JSON document, or raises ClickException on failure.
+    """
+    full_did = f"did:{wrapped_did_no_prefix}"
+
+    if wrapped_did_no_prefix.startswith("plc:"):
+        url = f"https://plc.directory/{full_did}"
+
+    elif wrapped_did_no_prefix.startswith("web:"):
+        # did:web:example.com           → https://example.com/.well-known/did.json
+        # did:web:example.com:path:to   → https://example.com/path/to/did.json
+        host_and_path = wrapped_did_no_prefix[len("web:"):]
+        parts = host_and_path.split(":")
+        if len(parts) == 1:
+            url = f"https://{parts[0]}/.well-known/did.json"
+        else:
+            path = "/".join(parts[1:])
+            url = f"https://{parts[0]}/{path}/did.json"
+
+    else:
+        raise click.ClickException(
+            f"Resolution not supported for did:{wrapped_did_no_prefix} "
+            f"(only did:plc and did:web are supported)"
+        )
+
+    try:
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        raise click.ClickException(f"Failed to fetch DID document from {url}: {e}")
+    except requests.exceptions.RequestException as e:
+        raise click.ClickException(f"Network error fetching {url}: {e}")
+
+    return url, resp.json()
+
+
+# ---------------------------------------------------------------------------
 # Commands
 # ---------------------------------------------------------------------------
 
@@ -124,8 +168,9 @@ def cli():
 
 @cli.command()
 @click.argument("did")
-def resolve(did):
-    """Resolve a did:cow DID to its current state.
+@click.option("--no-doc", is_flag=True, help="Skip fetching the wrapped DID document.")
+def resolve(did, no_doc):
+    """Resolve a did:cow DID to its current state and wrapped DID document.
 
     \b
     DID format: did:cow:<controller_address>:<method>:<id>
@@ -142,17 +187,27 @@ def resolve(did):
 
     controller, wrapped_did = contract.functions.cows(cow_hash).call()
 
+    if wrapped_did == ":":
+        click.echo("status:     deactivated")
+        return
+
     if wrapped_did == "":
         # No on-chain state — initial values from the DID string are authoritative
-        click.echo(f"status:     not yet registered on-chain")
+        click.echo("status:     not yet registered on-chain")
         click.echo(f"wrapped:    did:{initial_wrapped}  (from DID)")
         click.echo(f"controller: {_controller_address(controller_hex)}  (initial)")
-    elif wrapped_did == ":":
-        click.echo(f"status:     deactivated")
+        current_wrapped = initial_wrapped
     else:
-        click.echo(f"status:     active")
+        click.echo("status:     active")
         click.echo(f"wrapped:    did:{wrapped_did}")
         click.echo(f"controller: {controller}")
+        current_wrapped = wrapped_did
+
+    if not no_doc:
+        click.echo("")
+        url, doc = _resolve_did_doc(current_wrapped)
+        click.echo(f"resolved from: {url}")
+        click.echo(json.dumps(doc, indent=2))
 
 
 @cli.command("update-wrapped")
@@ -176,7 +231,7 @@ def update_wrapped(did, new_wrapped_did):
         _controller_address(controller_hex),
         initial_wrapped,
         new_wrapped,
-    ).build_transaction({})
+    ).build_transaction({"from": account.address})
 
     _send(w3, account, tx)
     click.echo(f"wrapped:    did:{new_wrapped}")
@@ -202,7 +257,7 @@ def update_controller(did, new_controller):
         _controller_address(controller_hex),
         initial_wrapped,
         Web3.to_checksum_address(new_controller),
-    ).build_transaction({})
+    ).build_transaction({"from": account.address})
 
     _send(w3, account, tx)
     click.echo(f"controller: {Web3.to_checksum_address(new_controller)}")
@@ -224,7 +279,7 @@ def deactivate(did):
         initial_wrapped,
     ).call()
 
-    tx = contract.functions.deactivate(cow_hash).build_transaction({})
+    tx = contract.functions.deactivate(cow_hash).build_transaction({"from": account.address})
 
     _send(w3, account, tx)
     click.echo("deactivated.")
