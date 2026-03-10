@@ -8,7 +8,7 @@ contract CowRegistry {
         string wrappedDID;
     }
 
-    string constant DEACTIVATED = "did::";
+    string constant DEACTIVATED = ":";
 
     mapping(bytes32 => Cow) public cows;
 
@@ -19,7 +19,7 @@ contract CowRegistry {
 
     function updateWrappedDIDByHash(bytes32 _cowHash, string memory _wrappedDID) public {
         require(msg.sender == cows[_cowHash].controller);
-        require(bytes(_wrappedDID).length > 5, "Use deactivate() to deactivate");
+        require(bytes(_wrappedDID).length > 1, "Use deactivate() to deactivate");
 
         cows[_cowHash].wrappedDID = _wrappedDID;
         emit WrappedDIDUpdated(_cowHash, _wrappedDID);

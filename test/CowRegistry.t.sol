@@ -10,15 +10,15 @@ contract CowRegistryUpdateTest is Test {
     address controller1 = address(0x1111);
     address controller2 = address(0x2222);
 
-    // Two did:plc addresses (8 char prefix + 24 char base32 = 32 chars total)
-    string plcDID1 = "did:plc:7qqsrnkn4moc2jgdxvh6aa3t";
-    string plcDID2 = "did:plc:abcdefghijklmnopqrstuvwx";
+    // Two did:plc addresses (did: prefix implied; 4 char prefix + 24 char base32 = 28 chars total)
+    string plcDID1 = "plc:7qqsrnkn4moc2jgdxvh6aa3t";
+    string plcDID2 = "plc:abcdefghijklmnopqrstuvwx";
 
-    // did:web addresses of varying lengths
-    string webDIDShort    = "did:web:a.io";
-    string webDIDMedium   = "did:web:example.com";
-    string webDIDLong     = "did:web:subdomain.very-long-hostname.example.co.uk";
-    string webDIDVeryLong = "did:web:deep.nested.subdomain.with-a-quite-long-hostname.enterprise.example.com";
+    // did:web addresses of varying lengths (did: prefix implied)
+    string webDIDShort    = "web:a.io";
+    string webDIDMedium   = "web:example.com";
+    string webDIDLong     = "web:subdomain.very-long-hostname.example.co.uk";
+    string webDIDVeryLong = "web:deep.nested.subdomain.with-a-quite-long-hostname.enterprise.example.com";
 
     function setUp() public {
         registry = new CowRegistry();
