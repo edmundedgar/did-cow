@@ -21,10 +21,10 @@ This is a draft specification and may be updated, replaced, or obsoleted at any 
 ### 1.1 Motivation
 
 Existing DID methods have trade-offs:
-- **did:key** - No rotation or recovery
-- **did:web** - Domain dependency, if you lose control of your domain you lose control of your identity
-- **did:plc** - Dependency on a centralized sequencer (Bluesky's PLC server)
-- **did:ethr** - Gas costs for all updates
+- **did:key** - No rotation or recovery.
+- **did:web** - Domain dependency, if you lose control of your domain you lose control of your identity.
+- **did:plc** - Dependency on a centralized sequencer (Bluesky's PLC server).
+- **did:ethr** - Gas costs for all updates.
 
 Migration between DIDs is not possible, so your DID:Web identity only lasts as long as your control of your domain does, and your DID:PLC identity only lasts until the centralized DID:PLC starts acting dishonestly.
 
@@ -32,11 +32,11 @@ We propose that users continue to use these methods for day-to-day updates, but 
 
 ### 1.2 Design Goals
 
-1. **Decentralized** - No trusted third-party responsible for ultimate resolution
+1. **Decentralized** - No trusted third-party responsible for ultimate resolution.
 2. **Zero-cost creation** - No blockchain transaction should be required to create a DID:COW ID.
-3. **Method agnostic** - Any DID method can be wrapped
-4. **Transferable** - The controller used for a did:cow ID can be replaced. If using a smart contract as controller, the controller can be retained but access to the controller changed
-5. **Composable Control** - The controller can be an arbitrary computer program, allowing sophisticted custom logic and compatibility with multisig and decentralized organization tooling such as Gnosis Safe
+3. **Method agnostic** - Any DID method can be wrapped.
+4. **Transferable** - The controller used for a did:cow ID can be replaced. If using a smart contract as controller, the controller can be retained but access to the controller changed.
+5. **Composable Control** - The controller can be an arbitrary computer program, allowing sophisticted custom logic and compatibility with multisig and decentralized organization tooling such as Gnosis Safe.
 6. **Minimal dependencies** - An Ethereum RPC endpoint is required to resolve, but you should not need additional infrastructure such as an indexer.
 
 ## 2. DID Method Name
@@ -76,26 +76,26 @@ DID = did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:plc:pyzlzqt6b2nyrha7smfry
 
 State mutations (updates/deactivations) are standard Ethereum calls made from the controller address. The controller can be an Externally Owned Account (controlled by a single cryptographic key) or a smart contract (controlled by multiple keys and/or custom logic).
 
-1. A user sends a transaction either from the controller or calling the controller
-2. The COW registry contract validates: `msg.sender == current_controller`
-3. Either the state is updated or the transaction reverts
+1. A user sends a transaction either from the controller or calling the controller.
+2. The COW registry contract validates: `msg.sender == current_controller`.
+3. Either the state is updated or the transaction reverts.
 
 ## 6. CRUD Operations
 
 ### 6.1 Create
 
-1. Create the wrapped DID
-2. Choose your initial controller address
-3. Form the did:cow identifier by inserting `cow:<initial_controller_address>:` after the initial `did:`, and dropping the `did:` prefix from the wrapped DID
+1. Create the DID you will wrap.
+2. Choose your initial controller address.
+3. Form the did:cow identifier by inserting `cow:<initial_controller_address>:` after the initial `did:`, and dropping the `did:` prefix from the wrapped DID.
 
 ### 6.2 Read (Resolution)
 
 1. Call `resolveCow(initial_controller_address, initial_wrapped_did)` on the registry contract 
 
 The Cow Registry smart contract performs the following steps:
-1.1. If no on-chain record exists, resolve the wrapped DID from the identifier directly
-1.2. If an on-chain record exists, prepend `did:` to the returned wrapped DID value and resolve that
-1.3. If the record exists but has been deactivated, return deactivated status
+1.1. If no on-chain record exists, resolve the wrapped DID from the identifier directly.
+1.2. If an on-chain record exists, prepend `did:` to the returned wrapped DID value and resolve that.
+1.3. If the record exists but has been deactivated, return deactivated status.
 
 2. Resolve the wrapped DID as per that DID system's resolution method.
 
