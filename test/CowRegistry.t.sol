@@ -29,11 +29,11 @@ contract CowRegistryUpdateTest is Test {
         return registry.calculateCowHash(ctrl, did);
     }
 
-    // -------------------------------------------------------------------------
-    // updateWrappedDID — did:plc
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // updateWrappedDID — pre-registered (initializeCow already called)
+    // =========================================================================
 
-    function test_updateWrappedDID_plc1_to_plc2() public {
+    function test_preregistered_updateWrappedDID_plc1_to_plc2() public {
         bytes32 cowHash = _init(controller1, plcDID1);
 
         vm.prank(controller1);
@@ -43,7 +43,7 @@ contract CowRegistryUpdateTest is Test {
         assertEq(did, plcDID2);
     }
 
-    function test_updateWrappedDID_plc2_to_plc1() public {
+    function test_preregistered_updateWrappedDID_plc2_to_plc1() public {
         bytes32 cowHash = _init(controller2, plcDID2);
 
         vm.prank(controller2);
@@ -53,11 +53,7 @@ contract CowRegistryUpdateTest is Test {
         assertEq(did, plcDID1);
     }
 
-    // -------------------------------------------------------------------------
-    // updateWrappedDID — did:web varying lengths
-    // -------------------------------------------------------------------------
-
-    function test_updateWrappedDID_web_short() public {
+    function test_preregistered_updateWrappedDID_web_short() public {
         bytes32 cowHash = _init(controller1, plcDID1);
 
         vm.prank(controller1);
@@ -67,7 +63,7 @@ contract CowRegistryUpdateTest is Test {
         assertEq(did, webDIDShort);
     }
 
-    function test_updateWrappedDID_web_medium() public {
+    function test_preregistered_updateWrappedDID_web_medium() public {
         bytes32 cowHash = _init(controller1, plcDID1);
 
         vm.prank(controller1);
@@ -77,7 +73,7 @@ contract CowRegistryUpdateTest is Test {
         assertEq(did, webDIDMedium);
     }
 
-    function test_updateWrappedDID_web_long() public {
+    function test_preregistered_updateWrappedDID_web_long() public {
         bytes32 cowHash = _init(controller1, plcDID1);
 
         vm.prank(controller1);
@@ -87,7 +83,7 @@ contract CowRegistryUpdateTest is Test {
         assertEq(did, webDIDLong);
     }
 
-    function test_updateWrappedDID_web_verylong() public {
+    function test_preregistered_updateWrappedDID_web_verylong() public {
         bytes32 cowHash = _init(controller1, plcDID1);
 
         vm.prank(controller1);
@@ -97,11 +93,11 @@ contract CowRegistryUpdateTest is Test {
         assertEq(did, webDIDVeryLong);
     }
 
-    // -------------------------------------------------------------------------
-    // updateController — did:plc
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // updateController — pre-registered
+    // =========================================================================
 
-    function test_updateController_plc1() public {
+    function test_preregistered_updateController_plc1() public {
         bytes32 cowHash = _init(controller1, plcDID1);
 
         vm.prank(controller1);
@@ -111,7 +107,7 @@ contract CowRegistryUpdateTest is Test {
         assertEq(ctrl, controller2);
     }
 
-    function test_updateController_plc2() public {
+    function test_preregistered_updateController_plc2() public {
         bytes32 cowHash = _init(controller2, plcDID2);
 
         vm.prank(controller2);
@@ -121,11 +117,7 @@ contract CowRegistryUpdateTest is Test {
         assertEq(ctrl, controller1);
     }
 
-    // -------------------------------------------------------------------------
-    // updateController — did:web varying lengths
-    // -------------------------------------------------------------------------
-
-    function test_updateController_web_short() public {
+    function test_preregistered_updateController_web_short() public {
         bytes32 cowHash = _init(controller1, webDIDShort);
 
         vm.prank(controller1);
@@ -135,7 +127,7 @@ contract CowRegistryUpdateTest is Test {
         assertEq(ctrl, controller2);
     }
 
-    function test_updateController_web_medium() public {
+    function test_preregistered_updateController_web_medium() public {
         bytes32 cowHash = _init(controller1, webDIDMedium);
 
         vm.prank(controller1);
@@ -145,7 +137,7 @@ contract CowRegistryUpdateTest is Test {
         assertEq(ctrl, controller2);
     }
 
-    function test_updateController_web_long() public {
+    function test_preregistered_updateController_web_long() public {
         bytes32 cowHash = _init(controller1, webDIDLong);
 
         vm.prank(controller1);
@@ -155,7 +147,7 @@ contract CowRegistryUpdateTest is Test {
         assertEq(ctrl, controller2);
     }
 
-    function test_updateController_web_verylong() public {
+    function test_preregistered_updateController_web_verylong() public {
         bytes32 cowHash = _init(controller1, webDIDVeryLong);
 
         vm.prank(controller1);
@@ -165,9 +157,125 @@ contract CowRegistryUpdateTest is Test {
         assertEq(ctrl, controller2);
     }
 
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // updateWrappedDID — on first update (registration + update in one tx)
+    // =========================================================================
+
+    function test_on_first_update_updateWrappedDID_plc1_to_plc2() public {
+        vm.prank(controller1);
+        registry.updateWrappedDID(controller1, plcDID1, plcDID2);
+
+        bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
+        (, string memory did) = registry.cows(cowHash);
+        assertEq(did, plcDID2);
+    }
+
+    function test_on_first_update_updateWrappedDID_plc2_to_plc1() public {
+        vm.prank(controller2);
+        registry.updateWrappedDID(controller2, plcDID2, plcDID1);
+
+        bytes32 cowHash = registry.calculateCowHash(controller2, plcDID2);
+        (, string memory did) = registry.cows(cowHash);
+        assertEq(did, plcDID1);
+    }
+
+    function test_on_first_update_updateWrappedDID_web_short() public {
+        vm.prank(controller1);
+        registry.updateWrappedDID(controller1, plcDID1, webDIDShort);
+
+        bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
+        (, string memory did) = registry.cows(cowHash);
+        assertEq(did, webDIDShort);
+    }
+
+    function test_on_first_update_updateWrappedDID_web_medium() public {
+        vm.prank(controller1);
+        registry.updateWrappedDID(controller1, plcDID1, webDIDMedium);
+
+        bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
+        (, string memory did) = registry.cows(cowHash);
+        assertEq(did, webDIDMedium);
+    }
+
+    function test_on_first_update_updateWrappedDID_web_long() public {
+        vm.prank(controller1);
+        registry.updateWrappedDID(controller1, plcDID1, webDIDLong);
+
+        bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
+        (, string memory did) = registry.cows(cowHash);
+        assertEq(did, webDIDLong);
+    }
+
+    function test_on_first_update_updateWrappedDID_web_verylong() public {
+        vm.prank(controller1);
+        registry.updateWrappedDID(controller1, plcDID1, webDIDVeryLong);
+
+        bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
+        (, string memory did) = registry.cows(cowHash);
+        assertEq(did, webDIDVeryLong);
+    }
+
+    // =========================================================================
+    // updateController — on first update
+    // =========================================================================
+
+    function test_on_first_update_updateController_plc1() public {
+        vm.prank(controller1);
+        registry.updateController(controller1, plcDID1, controller2);
+
+        bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
+        (address ctrl, ) = registry.cows(cowHash);
+        assertEq(ctrl, controller2);
+    }
+
+    function test_on_first_update_updateController_plc2() public {
+        vm.prank(controller2);
+        registry.updateController(controller2, plcDID2, controller1);
+
+        bytes32 cowHash = registry.calculateCowHash(controller2, plcDID2);
+        (address ctrl, ) = registry.cows(cowHash);
+        assertEq(ctrl, controller1);
+    }
+
+    function test_on_first_update_updateController_web_short() public {
+        vm.prank(controller1);
+        registry.updateController(controller1, webDIDShort, controller2);
+
+        bytes32 cowHash = registry.calculateCowHash(controller1, webDIDShort);
+        (address ctrl, ) = registry.cows(cowHash);
+        assertEq(ctrl, controller2);
+    }
+
+    function test_on_first_update_updateController_web_medium() public {
+        vm.prank(controller1);
+        registry.updateController(controller1, webDIDMedium, controller2);
+
+        bytes32 cowHash = registry.calculateCowHash(controller1, webDIDMedium);
+        (address ctrl, ) = registry.cows(cowHash);
+        assertEq(ctrl, controller2);
+    }
+
+    function test_on_first_update_updateController_web_long() public {
+        vm.prank(controller1);
+        registry.updateController(controller1, webDIDLong, controller2);
+
+        bytes32 cowHash = registry.calculateCowHash(controller1, webDIDLong);
+        (address ctrl, ) = registry.cows(cowHash);
+        assertEq(ctrl, controller2);
+    }
+
+    function test_on_first_update_updateController_web_verylong() public {
+        vm.prank(controller1);
+        registry.updateController(controller1, webDIDVeryLong, controller2);
+
+        bytes32 cowHash = registry.calculateCowHash(controller1, webDIDVeryLong);
+        (address ctrl, ) = registry.cows(cowHash);
+        assertEq(ctrl, controller2);
+    }
+
+    // =========================================================================
     // Auth checks
-    // -------------------------------------------------------------------------
+    // =========================================================================
 
     function test_updateWrappedDID_rejectsNonController() public {
         bytes32 cowHash = _init(controller1, plcDID1);
