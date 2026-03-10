@@ -92,7 +92,7 @@ State mutations (updates/deactivations) are standard Ethereum calls made from th
 
 ### 6.2 Read (Resolution)
 
-1. Call `resolveCow(initial_controller_address, initial_wrapped_did)` against the registry contract.
+Call `resolveCow(initial_controller_address, initial_wrapped_did)` against the registry contract.
 
  The did:cow registry contract performs the following steps:
 
@@ -100,7 +100,7 @@ State mutations (updates/deactivations) are standard Ethereum calls made from th
  - If an on-chain record exists, prepend `did:` to the returned wrapped DID value and resolve that.
  - If the record exists but has been deactivated, return deactivated status.
 
-2. Resolve the wrapped DID as per that DID system's resolution method.
+Resolve the wrapped DID as per that DID system's resolution method.
 
 ### 6.3 Update
 
