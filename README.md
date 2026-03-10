@@ -94,9 +94,9 @@ State mutations (updates/deactivations) are standard Ethereum calls made from th
 
 The Cow Registry smart contract performs the following steps:
 
-1.1. If no on-chain record exists, resolve the wrapped DID from the identifier directly.
-1.2. If an on-chain record exists, prepend `did:` to the returned wrapped DID value and resolve that.
-1.3. If the record exists but has been deactivated, return deactivated status.
+- 1.1. If no on-chain record exists, resolve the wrapped DID from the identifier directly.
+- 1.2. If an on-chain record exists, prepend `did:` to the returned wrapped DID value and resolve that.
+- 1.3. If the record exists but has been deactivated, return deactivated status.
 
 2. Resolve the wrapped DID as per that DID system's resolution method.
 
