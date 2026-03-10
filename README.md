@@ -9,7 +9,7 @@ The `did:cow` method (Consensus Ownership Wrapper) provides a persistent, decent
 
 It stores changes of control and migrations between wrapped DIDs on the Ethereum blockchain, affording users strong anti-censorship and anti-reorg guarantees even if the wrapped DIDs lack these properties. 
 
-It is designed limit the need to send blockchain transactions to changes of control and migrations, leaving cheaper and/or more convenient options to the wrapped DID systems for initial account creation or day-to-day updates.
+It uses blockchain transactions for migration between DIDs and changes of control, but avoids the need for blockchain transactions for initial account creation or day-to-day updates.
 
 ## Status of This Document
 
@@ -32,11 +32,11 @@ We propose that users continue to use these methods for day-to-day updates, but 
 ### 1.2 Design Goals
 
 1. **Decentralized** - No trusted third-party responsible for ultimate resolution
-2. **Zero-cost creation** - No blockchain transaction to create
+2. **Zero-cost creation** - No blockchain transaction should be required to create a DID:COW ID.
 3. **Method agnostic** - Any DID method can be wrapped
-4. **Transferable** - Controller can be changed
-5. **Composable Control** - Controller can be an arbitrary computer program, allowing sophisticted custom logic and compatibility with multisig and decentralized organization tooling such as Gnosis Safe
-6. **Minimal dependencies** - An Ethereum RPC endpoint is required to resolve, but you should not need other infrastructure such as an indexer.
+4. **Transferable** - The controller used for a did:cow ID can be replaced, or in the case of a smart contract the controller retained but access to the controller changed
+5. **Composable Control** - The controller can be an arbitrary computer program, allowing sophisticted custom logic and compatibility with multisig and decentralized organization tooling such as Gnosis Safe
+6. **Minimal dependencies** - An Ethereum RPC endpoint is required to resolve, but you should not need additional infrastructure such as an indexer.
 
 ## 2. DID Method Name
 
@@ -62,7 +62,6 @@ wrapped_did = "did:web:example.com"
 
 DID = did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:web:example.com
 ```
-
 ### 3.2 An initial DID:PLC ID
 
 ```
@@ -72,14 +71,13 @@ wrapped_did = "did:plc:pyzlzqt6b2nyrha7smfry6rv"
 DID = did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:plc:pyzlzqt6b2nyrha7smfry6rv
 ```
 
-
 ## 5. Blockchain Transaction Model
 
-State mutations (updates/deactivations) are standard Ethereum transactions from the controller address. The controller can be an Externally Owned Account (controlled by a single key) or a smart contract (controlled by multiple keys and/or custom logic).
+State mutations (updates/deactivations) are standard Ethereum calls made from the controller address. The controller can be an Externally Owned Account (controlled by a single cryptographic key) or a smart contract (controlled by multiple keys and/or custom logic).
 
 1. A user sends a transaction either from the controller or calling the controller
 2. The COW registry contract validates: `msg.sender == current_controller`
-3. State updated or transaction reverts
+3. Either the state is updated or the transaction reverts
 
 ## 6. CRUD Operations
 
