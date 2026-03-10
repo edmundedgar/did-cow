@@ -88,17 +88,17 @@ State mutations (updates/deactivations) are standard Ethereum calls made from th
 
 1. Create the DID you will wrap.
 2. Choose your initial controller address.
-3. Form the did:cow identifier by inserting `cow:<initial_controller_address>:` after the initial `did:`, and dropping the `did:` prefix from the wrapped DID.
+3. Form the did:cow identifier by inserting `cow:<initial_controller_address>:` after the initial `did:`.
 
 ### 6.2 Read (Resolution)
 
 1. Call `resolveCow(initial_controller_address, initial_wrapped_did)` against the registry contract.
 
-The did:cow registry contract performs the following steps:
+ The did:cow registry contract performs the following steps:
 
-- If no on-chain record exists, resolve the wrapped DID from the identifier directly.
-- If an on-chain record exists, prepend `did:` to the returned wrapped DID value and resolve that.
-- If the record exists but has been deactivated, return deactivated status.
+ - If no on-chain record exists, resolve the wrapped DID from the identifier directly.
+ - If an on-chain record exists, prepend `did:` to the returned wrapped DID value and resolve that.
+ - If the record exists but has been deactivated, return deactivated status.
 
 2. Resolve the wrapped DID as per that DID system's resolution method.
 
