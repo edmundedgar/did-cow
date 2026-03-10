@@ -78,11 +78,10 @@ State mutations (updates/deactivations) are standard Ethereum transactions from 
 
 ### 6.2 Read (Resolution)
 
-1. Derive the cow hash: `keccak256(abi.encodePacked(initial_controller_address, initial_wrapped_did))`
-2. Query the registry contract's `cows(cowHash)` mapping
-3. If no on-chain record exists, resolve the wrapped DID from the identifier directly
-4. If an on-chain record exists, prepend `did:` to the stored wrapped DID value and resolve that
-5. If the record is deactivated, return deactivated status
+1. Call `resolveCow(initial_controller_address, initial_wrapped_did)` on the registry contract
+2. If no on-chain record exists, resolve the wrapped DID from the identifier directly
+3. If an on-chain record exists, prepend `did:` to the returned wrapped DID value and resolve that
+4. If the record is deactivated, return deactivated status
 
 Resolved DID document includes the wrapped DID's content plus wrapper metadata.
 
