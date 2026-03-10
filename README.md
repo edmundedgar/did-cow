@@ -124,7 +124,7 @@ NB: It is permitted to set the controller to `0x0` via `updateController` withou
 
 The controller address inherits all the security considerations of any other Ethereum address. Addresses can be compromised by phishing, private key leakage etc.
 
-### 7.2 Wrapped DID Dependence
+### 7.2 Wrapped DID
 
 The did:cow address inherits the security risks of the wrapped DID:
 - did:web: DNS hijacking risk
