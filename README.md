@@ -5,7 +5,7 @@
 
 ## Abstract
 
-The `did:cow` method (Consensus Ownership Wrapper) provides persistent wrappers around other DID methods.
+The `did:cow` method (Consensus Ownership Wrapper) provides a persistent, decentralized, censorship-proof wrapper around other DID methods.
 
 It stores changes of control and migrations between wrapped DIDs on the Ethereum blockchain, providing strong anti-censorship and anti-reorg guarantees while avoiding the need to send blockchain transactions for initial account creation or day-to-day updates.
 
@@ -32,6 +32,7 @@ Migrating between methods breaks all existing references. `did:cow` provides a s
 3. **Method agnostic** - Any DID method can be wrapped
 4. **Transferable** - Controller can be changed
 5. **Composable Control** - Automatic compatibility with multisig and decentralized organization tooling such as Gnosis Safe
+6. **Minimal dependencies** - An Ethereum RPC endpoint is required to resolve, but you should not need other infrastructure such as an indexer.
 
 ## 2. DID Method Name
 
@@ -53,7 +54,7 @@ The `did:` prefix is omitted from the wrapped DID portion of the identifier beca
 
 ```
 initial_controller_address = "8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be"
-wrapped_did                 = "did:web:example.com"
+wrapped_did = "did:web:example.com"
 
 DID = did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:web:example.com
 ```
