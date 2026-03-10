@@ -1,7 +1,8 @@
 # The did:cow Method Specification v0.1
 
 **Status:** Draft Specification
-**Date:** February 16, 2026
+**Date:** March 10th, 2026
+**DAuthor:** Edmund Edgar (goat.navy)
 
 ## Abstract
 
