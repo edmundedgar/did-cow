@@ -10,9 +10,9 @@ contract CowRegistryUpdateTest is Test {
     address controller1 = address(0x1111);
     address controller2 = address(0x2222);
 
-    // Two did:plc addresses
-    string plcDID1 = "did:plc:7qqsrnkn4moc2jgd";
-    string plcDID2 = "did:plc:abcdefghijklmnop";
+    // Two did:plc addresses (8 char prefix + 24 char base32 = 32 chars total)
+    string plcDID1 = "did:plc:7qqsrnkn4moc2jgdxvh6aa3t";
+    string plcDID2 = "did:plc:abcdefghijklmnopqrstuvwx";
 
     // did:web addresses of varying lengths
     string webDIDShort    = "did:web:a.io";
