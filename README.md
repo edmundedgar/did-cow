@@ -1,13 +1,13 @@
 # The did:cow Method Specification v0.1
 
-**Status:** Draft Specification  
+**Status:** Draft Specification
 **Date:** February 16, 2026
 
 ## Abstract
 
-The `did:cow` method (Consensus Ownership Wrapper) provides persistent wrappers around other DID methods. 
+The `did:cow` method (Consensus Ownership Wrapper) provides persistent wrappers around other DID methods.
 
-It stores migrations between DIDs and changes of control on the Ethereum mainnet, providing strong anti-censorship and anti-reorg guarantees while avoiding the need to send blockchain transactions for initial account creation or day-to-day updates.
+It stores changes of control and migrations between wrapped DIDs on the Ethereum blockchain, providing strong anti-censorship and anti-reorg guarantees while avoiding the need to send blockchain transactions for initial account creation or day-to-day updates.
 
 ## Status of This Document
 
@@ -29,9 +29,9 @@ Migrating between methods breaks all existing references. `did:cow` provides a s
 
 1. **Decentralized** - No central registry dependency
 2. **Zero-cost creation** - No blockchain transaction to create
-3. **Method agnostic** - Any DID method can be wraped
-5. **Transferable** - Controller can be changed
-6. **Composible Control** - Automatic compatibility with multisig and decentralized organization tooling such as Gnosis Safe.
+3. **Method agnostic** - Any DID method can be wrapped
+4. **Transferable** - Controller can be changed
+5. **Composable Control** - Automatic compatibility with multisig and decentralized organization tooling such as Gnosis Safe
 
 ## 2. DID Method Name
 
@@ -43,16 +43,17 @@ DID prefix: `did:cow:` (lowercase)
 
 Format: `did:cow:<initial_controller_address>:<initial_wrapped_did>`
 
-
 **Parameters:**
 - `initial_controller_address` - Ethereum address (20 bytes, no "0x" prefix)
-- `initial_wrapped_did` - UTF-8 encoded DID string
+- `initial_wrapped_did` - The wrapped DID with its leading `did:` stripped, e.g. `web:example.com` rather than `did:web:example.com`
+
+The `did:` prefix is omitted from the wrapped DID portion of the identifier because it is already implied by the DID syntax. This also reduces on-chain storage costs.
 
 ### 3.1 Example
 
 ```
-initial_controller_address = "8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be" (20 bytes, no 0x prefix)
-wrapped_did = "did:web:example.com"
+initial_controller_address = "8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be"
+wrapped_did                 = "did:web:example.com"
 
 DID = did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:web:example.com
 ```
@@ -73,37 +74,41 @@ State mutations (updates/deactivations) are standard Ethereum transactions from 
 
 1. Create the wrapped DID
 2. Choose your initial controller address
-2. Insert `cow:<initial_controller_address>:` after the initial `did`:.
+3. Form the did:cow identifier by inserting `cow:<initial_controller_address>:` after the initial `did:`, and dropping the `did:` prefix from the wrapped DID
 
 ### 6.2 Read (Resolution)
 
-1. Query an Ethereum RPC endpoint to find out the wrapped DID
-2. If it returns a value, resolve that as per that DID's standard
-3. If it is unset, use the DID value originally specified in the ID
+1. Derive the cow hash: `keccak256(abi.encodePacked(initial_controller_address, initial_wrapped_did))`
+2. Query the registry contract's `cows(cowHash)` mapping
+3. If no on-chain record exists, resolve the wrapped DID from the identifier directly
+4. If an on-chain record exists, prepend `did:` to the stored wrapped DID value and resolve that
+5. If the record is deactivated, return deactivated status
 
-Resolved DID document includes wrapped DID's content plus wrapper metadata.
+Resolved DID document includes the wrapped DID's content plus wrapper metadata.
 
 ### 6.3 Update
 
-Make an on-chain transaction from the current controller.
+Send an on-chain transaction from the current controller to either:
+- `updateWrappedDID` / `updateWrappedDIDByHash` — change the wrapped DID
+- `updateController` / `updateControllerByHash` — transfer control to a new address
 
-The initial update
+If the cow has not been registered on-chain yet, `updateWrappedDID` and `updateController` will register it automatically in the same transaction.
 
 ### 6.4 Deactivate
 
-Permanent. On-chain transaction from current controller.
+Permanent. On-chain transaction from current controller calling `deactivate(cowHash)`.
 
-Set the controller address to `0x` and the wrapped DID value to `did::`.
+Sets the controller address to `0x0` and the stored wrapped DID to `:`.
 
-After deactivation, DID resolves to deactivated status and cannot be reactivated.
+After deactivation, the DID resolves to deactivated status and cannot be reactivated.
 
-Note: It is permitted to set the controller address to 0x without deactivating the record, in which case it will continue to resolve but nobody will be able to update it.
+Note: It is permitted to transfer the controller to `0x0` via `updateController` without deactivating, in which case the DID continues to resolve but can never be updated or deactivated.
 
 ## 7. Security Considerations
 
 ### 7.1 Controller
 
-The controller address inherits all the security considerations of any other Ethereum address. 
+The controller address inherits all the security considerations of any other Ethereum address.
 
 ### 7.2 Wrapped DID Dependence
 
@@ -116,11 +121,11 @@ However, since users can switch to another wrapped DID they can recover from a c
 
 ### 7.3 Blockchain Dependencies
 
-**Why Ethereum:** 
+**Why Ethereum:**
 
-High security, established ecosystem, established tooling for multisig and organizational control. Strong social consensus on anti-censorship means we can be confident that the main Ethereum chain, or failing that a viable fork of the Ethereum chain, will accept continue accepting updates without censorship for the foreseeable future.
+High security, established ecosystem, established tooling for multisig and organizational control. Strong social consensus on anti-censorship means we can be confident that the main Ethereum chain, or failing that a viable fork of the Ethereum chain, will continue accepting updates without censorship for the foreseeable future.
 
-**Tradeoffs:** Gas costs (~50-100k gas per update), ~12 second confirmation
+**Tradeoffs:** Gas costs (25–100k gas per update depending on DID length and whether registration is included), ~12 second confirmation
 
 ## 8. Privacy Considerations
 
@@ -130,18 +135,26 @@ High security, established ecosystem, established tooling for multisig and organ
 
 ### 8.2 On-Chain Metadata
 
-All updates permanently public with timestamps. Creates audit trail of updates, previous/new wrapped DIDs, and controller history.
+All updates permanently public with timestamps. Creates an audit trail of updates, previous/new wrapped DIDs, and controller history.
 
 ## 9. Reference Implementation
 
-Available at: [To be provided]
+Deployed on Sepolia testnet: `0x1e0de1f90fB0cCC69174935Dd90481D7c19Cf04d`
 
-**Key functions:**
-- `createDID(controllerHex, wrappedDid)` - Generate did:cow
-- `parseInitialState(stateBytes)` - Parse binary state
-- `resolveDID(didCow)` - Resolve to DID document
-- `updateDID(didCow, newWrappedDid, newController)` - Build update transaction
-- `deactivateDID(didCow)` - Build deactivation transaction
+**Contract functions (`CowRegistry.sol`):**
+- `calculateCowHash(controller, wrappedDID)` — derive the registry key for a cow
+- `initializeCow(controller, wrappedDID)` — optionally pre-register before first update
+- `updateWrappedDID(controller, wrappedDID, newWrappedDID)` — update wrapped DID, registering if needed
+- `updateWrappedDIDByHash(cowHash, newWrappedDID)` — update wrapped DID by pre-computed hash
+- `updateController(controller, wrappedDID, newController)` — transfer control, registering if needed
+- `updateControllerByHash(cowHash, newController)` — transfer control by pre-computed hash
+- `deactivate(cowHash)` — permanently deactivate
+
+**CLI tool (`cli/cow.py`):**
+- `resolve <did>` — resolve to current state and fetch wrapped DID document
+- `update-wrapped <did> <newWrappedDID>` — update the wrapped DID
+- `update-controller <did> <newController>` — transfer control
+- `deactivate <did>` — permanently deactivate
 
 ## 10. Example DID Document
 
@@ -162,13 +175,13 @@ Resolved DID Document:
     "https://www.w3.org/ns/did/v1",
     "https://w3id.org/security/suites/jws-2020/v1"
   ],
-  "id": "did:cow:8b7df143d91c716ecfa5fc1730022f6b421b05cedee8fd52b1fc65a96030ad52",
-  "controller": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+  "id": "did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:web:example.com",
+  "controller": "0x8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be",
   "verificationMethod": [
     {
       "id": "did:web:example.com#key-1",
       "type": "JsonWebKey2020",
-      "controller": "did:cow:8b7df143d91c716ecfa5fc1730022f6b421b05cedee8fd52b1fc65a96030ad52",
+      "controller": "did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:web:example.com",
       "publicKeyJwk": {
         "kty": "EC",
         "crv": "secp256k1",
@@ -186,7 +199,7 @@ Resolved DID Document:
       "type": "COWWrapper",
       "serviceEndpoint": {
         "wrapped_did": "did:web:example.com",
-        "wrapper_controller": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+        "wrapper_controller": "0x8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be",
         "on_chain_state": true,
         "last_updated": "2026-02-16T10:30:00Z"
       }
@@ -201,15 +214,13 @@ Resolved DID Document:
 |---------|---------|---------|---------|---------|
 | Rotation Support | ✓ | ✗ | ✓ | ✓ |
 | Zero-cost Creation | ✓ | ✓ | ✓ | ✓ |
-| Zero-cost Controller Updates | ✗  | ✓ | ✓ | ✓ |
-| Decentralized | ✓ | ✓ | ✗ | ✗ |
-| Zero-cost Controller Updates | ✓ | ✓ | ✓ | ✓ |
+| Zero-cost Updates | ✗ | ✓ | ✓ | ✓ |
 | Decentralized | ✓ | ✓ | ✗ | ✗ |
 | Blockchain Required | Ethereum | None | None | None |
 | Rotation Authority | Ethereum | N/A | DNS | PLC Directory |
-| Censorship Resistant | ✓ | ✓  | ✗ | ✗ |
+| Censorship Resistant | ✓ | ✓ | ✗ | ✗ |
 
-## 12. Philosophical considerations
+## 12. Philosophical Considerations
 
 DIDs are intended to be permanent identifiers. Using a wrapper implies that the wrapped DID is not in fact a permanent identifier.
 
