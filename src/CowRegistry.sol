@@ -58,6 +58,7 @@ contract CowRegistry {
         Cow storage cow = cows[cowHash];
         if (cow.deactivated) revert AlreadyDeactivated();
         if (!cow.initialized) {
+            if (bytes(_wrappedDID).length == 0) revert EmptyWrappedDID();
             cow.initialized = true;
             cow.controller = _controller;
             cow.wrappedDID = _wrappedDID;
@@ -122,7 +123,6 @@ contract CowRegistry {
     /// @param _controller The initial controller address.
     /// @param _wrappedDID The initial wrapped DID, without the leading "did:" prefix.
     function initializeCow(address _controller, string memory _wrappedDID) external {
-        if (bytes(_wrappedDID).length == 0) revert EmptyWrappedDID();
         _ensureCowInitialized(_controller, _wrappedDID);
     }
 
