@@ -281,7 +281,7 @@ contract CowRegistryUpdateTest is Test {
         bytes32 cowHash = _init(controller1, plcDID1);
 
         vm.prank(controller2);
-        vm.expectRevert();
+        vm.expectRevert(CowRegistry.NotController.selector);
         registry.updateWrappedDIDByHash(cowHash, plcDID2);
     }
 
@@ -289,7 +289,7 @@ contract CowRegistryUpdateTest is Test {
         bytes32 cowHash = _init(controller1, plcDID1);
 
         vm.prank(controller2);
-        vm.expectRevert();
+        vm.expectRevert(CowRegistry.NotController.selector);
         registry.updateControllerByHash(cowHash, controller2);
     }
 
@@ -301,7 +301,7 @@ contract CowRegistryUpdateTest is Test {
 
         bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
         vm.prank(controller1);
-        vm.expectRevert();
+        vm.expectRevert(CowRegistry.AlreadyDeactivated.selector);
         registry.updateWrappedDIDByHash(cowHash, plcDID2);
     }
 
@@ -312,7 +312,7 @@ contract CowRegistryUpdateTest is Test {
         registry.deactivateByHash(cowHash);
 
         vm.prank(controller1);
-        vm.expectRevert();
+        vm.expectRevert(CowRegistry.AlreadyDeactivated.selector);
         registry.updateControllerByHash(cowHash, controller2);
     }
 
@@ -323,7 +323,7 @@ contract CowRegistryUpdateTest is Test {
         registry.deactivateByHash(cowHash);
 
         vm.prank(controller1);
-        vm.expectRevert();
+        vm.expectRevert(CowRegistry.AlreadyDeactivated.selector);
         registry.deactivateByHash(cowHash);
     }
 
@@ -335,5 +335,33 @@ contract CowRegistryUpdateTest is Test {
 
         (, , , string memory did) = registry.cows(cowHash);
         assertEq(did, "");
+    }
+
+    // =========================================================================
+    // NotInitialized checks
+    // =========================================================================
+
+    function test_updateWrappedDID_rejectsNotInitialized() public {
+        bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
+
+        vm.prank(controller1);
+        vm.expectRevert(CowRegistry.NotInitialized.selector);
+        registry.updateWrappedDIDByHash(cowHash, plcDID2);
+    }
+
+    function test_updateController_rejectsNotInitialized() public {
+        bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
+
+        vm.prank(controller1);
+        vm.expectRevert(CowRegistry.NotInitialized.selector);
+        registry.updateControllerByHash(cowHash, controller2);
+    }
+
+    function test_deactivate_rejectsNotInitialized() public {
+        bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
+
+        vm.prank(controller1);
+        vm.expectRevert(CowRegistry.NotInitialized.selector);
+        registry.deactivateByHash(cowHash);
     }
 }

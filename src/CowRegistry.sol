@@ -20,6 +20,11 @@ contract CowRegistry {
         string wrappedDID;
     }
 
+    error NotInitialized();
+    error NotController();
+    error AlreadyDeactivated();
+    error EmptyWrappedDID();
+
     /// @notice Mapping from cow hash to current on-chain state.
     /// @dev Returns zero values if the cow has never been registered on-chain.
     mapping(bytes32 => Cow) public cows;
@@ -43,8 +48,10 @@ contract CowRegistry {
     /// @param _wrappedDID The new wrapped DID, without the leading "did:" prefix.
     function updateWrappedDIDByHash(bytes32 _cowHash, string memory _wrappedDID) public {
         Cow storage cow = cows[_cowHash];
-        require(msg.sender == cow.controller && !cow.deactivated);
-        require(bytes(_wrappedDID).length > 0);
+        if (!cow.initialized) revert NotInitialized();
+        if (cow.deactivated) revert AlreadyDeactivated();
+        if (msg.sender != cow.controller) revert NotController();
+        if (bytes(_wrappedDID).length == 0) revert EmptyWrappedDID();
 
         cow.wrappedDID = _wrappedDID;
         emit WrappedDIDUpdated(_cowHash, _wrappedDID);
@@ -59,7 +66,9 @@ contract CowRegistry {
     /// @param _controller The new controller address.
     function updateControllerByHash(bytes32 _cowHash, address _controller) public {
         Cow storage cow = cows[_cowHash];
-        require(msg.sender == cow.controller && !cow.deactivated);
+        if (!cow.initialized) revert NotInitialized();
+        if (cow.deactivated) revert AlreadyDeactivated();
+        if (msg.sender != cow.controller) revert NotController();
 
         cow.controller = _controller;
         emit ControllerUpdated(_cowHash, _controller);
@@ -71,11 +80,13 @@ contract CowRegistry {
     /// @param _cowHash The cow's registry key, as returned by calculateCowHash.
     function deactivateByHash(bytes32 _cowHash) public {
         Cow storage cow = cows[_cowHash];
-        require(msg.sender == cow.controller && !cow.deactivated);
+        if (!cow.initialized) revert NotInitialized();
+        if (cow.deactivated) revert AlreadyDeactivated();
+        if (msg.sender != cow.controller) revert NotController();
 
         cow.deactivated = true;
         cow.controller = address(0);
-        delete cow.wrappedDID;
+        cow.wrappedDID = "";
 
         emit CowDeactivated(_cowHash);
     }
@@ -92,7 +103,7 @@ contract CowRegistry {
     function _ensureCowInitialized(address _controller, string memory _wrappedDID) internal returns (bytes32 cowHash) {
         cowHash = calculateCowHash(_controller, _wrappedDID);
         Cow storage cow = cows[cowHash];
-        require(!cow.deactivated);
+        if (cow.deactivated) revert AlreadyDeactivated();
         if (!cow.initialized) {
             cow.initialized = true;
             cow.controller = _controller;
