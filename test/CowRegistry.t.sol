@@ -364,4 +364,10 @@ contract CowRegistryUpdateTest is Test {
         vm.expectRevert(CowRegistry.NotInitialized.selector);
         registry.deactivateByHash(cowHash);
     }
+
+    function test_initialize_rejectsEmptyWrappedDID() public {
+        vm.prank(controller1);
+        vm.expectRevert(CowRegistry.EmptyWrappedDID.selector);
+        registry.initializeCow(controller1, "");
+    }
 }

@@ -122,6 +122,7 @@ contract CowRegistry {
     /// @param _controller The initial controller address.
     /// @param _wrappedDID The initial wrapped DID, without the leading "did:" prefix.
     function initializeCow(address _controller, string memory _wrappedDID) external {
+        if (bytes(_wrappedDID).length == 0) revert EmptyWrappedDID();
         _ensureCowInitialized(_controller, _wrappedDID);
     }
 
