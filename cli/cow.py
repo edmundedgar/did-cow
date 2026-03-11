@@ -213,7 +213,7 @@ def describe(did):
         _controller_address(controller_hex),
         initial_wrapped,
     ).call()
-    registered = contract.functions.cows(cow_hash).call()[2]
+    registered = contract.functions.cows(cow_hash).call()[1]
 
     click.echo(f"status:     {'active' if registered else 'not registered on-chain'}")
     click.echo(f"wrapped:    {wrapped_did}")
