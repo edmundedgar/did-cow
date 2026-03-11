@@ -12,13 +12,13 @@ contract CowRegistry {
     /// @notice On-chain state for a single did:cow identifier.
     /// @dev The cowHash key is derived from the *initial* controller and wrapped DID,
     ///      so these fields reflect the *current* state after any updates.
+    ///      controller and deactivated are packed into a single storage slot.
     struct Cow {
         address controller;
+        bool deactivated;
+        bool initialized;
         string wrappedDID;
     }
-
-    /// @dev Sentinel value stored in wrappedDID to mark a deactivated cow.
-    string constant DEACTIVATED = ":";
 
     /// @notice Mapping from cow hash to current on-chain state.
     /// @dev Returns zero values if the cow has never been registered on-chain.
@@ -42,10 +42,11 @@ contract CowRegistry {
     /// @param _cowHash The cow's registry key, as returned by calculateCowHash.
     /// @param _wrappedDID The new wrapped DID, without the leading "did:" prefix.
     function updateWrappedDIDByHash(bytes32 _cowHash, string memory _wrappedDID) public {
-        require(msg.sender == cows[_cowHash].controller);
-        require(bytes(_wrappedDID).length > 1, "Use deactivate() to deactivate");
+        Cow storage cow = cows[_cowHash];
+        require(msg.sender == cow.controller && !cow.deactivated);
+        require(bytes(_wrappedDID).length > 0);
 
-        cows[_cowHash].wrappedDID = _wrappedDID;
+        cow.wrappedDID = _wrappedDID;
         emit WrappedDIDUpdated(_cowHash, _wrappedDID);
     }
 
@@ -57,9 +58,10 @@ contract CowRegistry {
     /// @param _cowHash The cow's registry key, as returned by calculateCowHash.
     /// @param _controller The new controller address.
     function updateControllerByHash(bytes32 _cowHash, address _controller) public {
-        require(msg.sender == cows[_cowHash].controller);
+        Cow storage cow = cows[_cowHash];
+        require(msg.sender == cow.controller && !cow.deactivated);
 
-        cows[_cowHash].controller = _controller;
+        cow.controller = _controller;
         emit ControllerUpdated(_cowHash, _controller);
     }
 
@@ -68,10 +70,12 @@ contract CowRegistry {
     ///      Use deactivate if the cow may not yet be registered on-chain.
     /// @param _cowHash The cow's registry key, as returned by calculateCowHash.
     function deactivateByHash(bytes32 _cowHash) public {
-        require(msg.sender == cows[_cowHash].controller);
+        Cow storage cow = cows[_cowHash];
+        require(msg.sender == cow.controller && !cow.deactivated);
 
-        cows[_cowHash].wrappedDID = DEACTIVATED;
-        cows[_cowHash].controller = address(0);
+        cow.deactivated = true;
+        cow.controller = address(0);
+        delete cow.wrappedDID;
 
         emit CowDeactivated(_cowHash);
     }
@@ -87,8 +91,12 @@ contract CowRegistry {
     /// @dev Register a cow on-chain if not already present, then return its hash.
     function _ensureCowInitialized(address _controller, string memory _wrappedDID) internal returns (bytes32 cowHash) {
         cowHash = calculateCowHash(_controller, _wrappedDID);
-        if (bytes(cows[cowHash].wrappedDID).length == 0) {
-            cows[cowHash] = Cow(_controller, _wrappedDID);
+        Cow storage cow = cows[cowHash];
+        require(!cow.deactivated);
+        if (!cow.initialized) {
+            cow.initialized = true;
+            cow.controller = _controller;
+            cow.wrappedDID = _wrappedDID;
             emit CowInitialized(cowHash, _controller, _wrappedDID);
         }
         return cowHash;
@@ -103,11 +111,11 @@ contract CowRegistry {
     function resolveCow(address _controller, string memory _wrappedDID) external view returns (string memory wrappedDID, address controller) {
         bytes32 cowHash = calculateCowHash(_controller, _wrappedDID);
         Cow storage cow = cows[cowHash];
-        if (bytes(cow.wrappedDID).length == 0) {
-            return (string.concat("did:", _wrappedDID), _controller);
-        }
-        if (keccak256(bytes(cow.wrappedDID)) == keccak256(bytes(DEACTIVATED))) {
+        if (cow.deactivated) {
             return ("", address(0));
+        }
+        if (!cow.initialized) {
+            return (string.concat("did:", _wrappedDID), _controller);
         }
         return (string.concat("did:", cow.wrappedDID), cow.controller);
     }

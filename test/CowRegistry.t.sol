@@ -39,7 +39,7 @@ contract CowRegistryUpdateTest is Test {
         vm.prank(controller1);
         registry.updateWrappedDIDByHash(cowHash, plcDID2);
 
-        (, string memory did) = registry.cows(cowHash);
+        (, , , string memory did) = registry.cows(cowHash);
         assertEq(did, plcDID2);
     }
 
@@ -49,7 +49,7 @@ contract CowRegistryUpdateTest is Test {
         vm.prank(controller2);
         registry.updateWrappedDIDByHash(cowHash, plcDID1);
 
-        (, string memory did) = registry.cows(cowHash);
+        (, , , string memory did) = registry.cows(cowHash);
         assertEq(did, plcDID1);
     }
 
@@ -59,7 +59,7 @@ contract CowRegistryUpdateTest is Test {
         vm.prank(controller1);
         registry.updateWrappedDIDByHash(cowHash, webDIDShort);
 
-        (, string memory did) = registry.cows(cowHash);
+        (, , , string memory did) = registry.cows(cowHash);
         assertEq(did, webDIDShort);
     }
 
@@ -69,7 +69,7 @@ contract CowRegistryUpdateTest is Test {
         vm.prank(controller1);
         registry.updateWrappedDIDByHash(cowHash, webDIDMedium);
 
-        (, string memory did) = registry.cows(cowHash);
+        (, , , string memory did) = registry.cows(cowHash);
         assertEq(did, webDIDMedium);
     }
 
@@ -79,7 +79,7 @@ contract CowRegistryUpdateTest is Test {
         vm.prank(controller1);
         registry.updateWrappedDIDByHash(cowHash, webDIDLong);
 
-        (, string memory did) = registry.cows(cowHash);
+        (, , , string memory did) = registry.cows(cowHash);
         assertEq(did, webDIDLong);
     }
 
@@ -89,7 +89,7 @@ contract CowRegistryUpdateTest is Test {
         vm.prank(controller1);
         registry.updateWrappedDIDByHash(cowHash, webDIDVeryLong);
 
-        (, string memory did) = registry.cows(cowHash);
+        (, , , string memory did) = registry.cows(cowHash);
         assertEq(did, webDIDVeryLong);
     }
 
@@ -103,7 +103,7 @@ contract CowRegistryUpdateTest is Test {
         vm.prank(controller1);
         registry.updateControllerByHash(cowHash, controller2);
 
-        (address ctrl, ) = registry.cows(cowHash);
+        (address ctrl, , , ) = registry.cows(cowHash);
         assertEq(ctrl, controller2);
     }
 
@@ -113,7 +113,7 @@ contract CowRegistryUpdateTest is Test {
         vm.prank(controller2);
         registry.updateControllerByHash(cowHash, controller1);
 
-        (address ctrl, ) = registry.cows(cowHash);
+        (address ctrl, , , ) = registry.cows(cowHash);
         assertEq(ctrl, controller1);
     }
 
@@ -123,7 +123,7 @@ contract CowRegistryUpdateTest is Test {
         vm.prank(controller1);
         registry.updateControllerByHash(cowHash, controller2);
 
-        (address ctrl, ) = registry.cows(cowHash);
+        (address ctrl, , , ) = registry.cows(cowHash);
         assertEq(ctrl, controller2);
     }
 
@@ -133,7 +133,7 @@ contract CowRegistryUpdateTest is Test {
         vm.prank(controller1);
         registry.updateControllerByHash(cowHash, controller2);
 
-        (address ctrl, ) = registry.cows(cowHash);
+        (address ctrl, , , ) = registry.cows(cowHash);
         assertEq(ctrl, controller2);
     }
 
@@ -143,7 +143,7 @@ contract CowRegistryUpdateTest is Test {
         vm.prank(controller1);
         registry.updateControllerByHash(cowHash, controller2);
 
-        (address ctrl, ) = registry.cows(cowHash);
+        (address ctrl, , , ) = registry.cows(cowHash);
         assertEq(ctrl, controller2);
     }
 
@@ -153,7 +153,7 @@ contract CowRegistryUpdateTest is Test {
         vm.prank(controller1);
         registry.updateControllerByHash(cowHash, controller2);
 
-        (address ctrl, ) = registry.cows(cowHash);
+        (address ctrl, , , ) = registry.cows(cowHash);
         assertEq(ctrl, controller2);
     }
 
@@ -166,7 +166,7 @@ contract CowRegistryUpdateTest is Test {
         registry.updateWrappedDID(controller1, plcDID1, plcDID2);
 
         bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
-        (, string memory did) = registry.cows(cowHash);
+        (, , , string memory did) = registry.cows(cowHash);
         assertEq(did, plcDID2);
     }
 
@@ -175,7 +175,7 @@ contract CowRegistryUpdateTest is Test {
         registry.updateWrappedDID(controller2, plcDID2, plcDID1);
 
         bytes32 cowHash = registry.calculateCowHash(controller2, plcDID2);
-        (, string memory did) = registry.cows(cowHash);
+        (, , , string memory did) = registry.cows(cowHash);
         assertEq(did, plcDID1);
     }
 
@@ -184,7 +184,7 @@ contract CowRegistryUpdateTest is Test {
         registry.updateWrappedDID(controller1, plcDID1, webDIDShort);
 
         bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
-        (, string memory did) = registry.cows(cowHash);
+        (, , , string memory did) = registry.cows(cowHash);
         assertEq(did, webDIDShort);
     }
 
@@ -193,7 +193,7 @@ contract CowRegistryUpdateTest is Test {
         registry.updateWrappedDID(controller1, plcDID1, webDIDMedium);
 
         bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
-        (, string memory did) = registry.cows(cowHash);
+        (, , , string memory did) = registry.cows(cowHash);
         assertEq(did, webDIDMedium);
     }
 
@@ -202,7 +202,7 @@ contract CowRegistryUpdateTest is Test {
         registry.updateWrappedDID(controller1, plcDID1, webDIDLong);
 
         bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
-        (, string memory did) = registry.cows(cowHash);
+        (, , , string memory did) = registry.cows(cowHash);
         assertEq(did, webDIDLong);
     }
 
@@ -211,7 +211,7 @@ contract CowRegistryUpdateTest is Test {
         registry.updateWrappedDID(controller1, plcDID1, webDIDVeryLong);
 
         bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
-        (, string memory did) = registry.cows(cowHash);
+        (, , , string memory did) = registry.cows(cowHash);
         assertEq(did, webDIDVeryLong);
     }
 
@@ -224,7 +224,7 @@ contract CowRegistryUpdateTest is Test {
         registry.updateController(controller1, plcDID1, controller2);
 
         bytes32 cowHash = registry.calculateCowHash(controller1, plcDID1);
-        (address ctrl, ) = registry.cows(cowHash);
+        (address ctrl, , , ) = registry.cows(cowHash);
         assertEq(ctrl, controller2);
     }
 
@@ -233,7 +233,7 @@ contract CowRegistryUpdateTest is Test {
         registry.updateController(controller2, plcDID2, controller1);
 
         bytes32 cowHash = registry.calculateCowHash(controller2, plcDID2);
-        (address ctrl, ) = registry.cows(cowHash);
+        (address ctrl, , , ) = registry.cows(cowHash);
         assertEq(ctrl, controller1);
     }
 
@@ -242,7 +242,7 @@ contract CowRegistryUpdateTest is Test {
         registry.updateController(controller1, webDIDShort, controller2);
 
         bytes32 cowHash = registry.calculateCowHash(controller1, webDIDShort);
-        (address ctrl, ) = registry.cows(cowHash);
+        (address ctrl, , , ) = registry.cows(cowHash);
         assertEq(ctrl, controller2);
     }
 
@@ -251,7 +251,7 @@ contract CowRegistryUpdateTest is Test {
         registry.updateController(controller1, webDIDMedium, controller2);
 
         bytes32 cowHash = registry.calculateCowHash(controller1, webDIDMedium);
-        (address ctrl, ) = registry.cows(cowHash);
+        (address ctrl, , , ) = registry.cows(cowHash);
         assertEq(ctrl, controller2);
     }
 
@@ -260,7 +260,7 @@ contract CowRegistryUpdateTest is Test {
         registry.updateController(controller1, webDIDLong, controller2);
 
         bytes32 cowHash = registry.calculateCowHash(controller1, webDIDLong);
-        (address ctrl, ) = registry.cows(cowHash);
+        (address ctrl, , , ) = registry.cows(cowHash);
         assertEq(ctrl, controller2);
     }
 
@@ -269,7 +269,7 @@ contract CowRegistryUpdateTest is Test {
         registry.updateController(controller1, webDIDVeryLong, controller2);
 
         bytes32 cowHash = registry.calculateCowHash(controller1, webDIDVeryLong);
-        (address ctrl, ) = registry.cows(cowHash);
+        (address ctrl, , , ) = registry.cows(cowHash);
         assertEq(ctrl, controller2);
     }
 
@@ -303,5 +303,37 @@ contract CowRegistryUpdateTest is Test {
         vm.prank(controller1);
         vm.expectRevert();
         registry.updateWrappedDIDByHash(cowHash, plcDID2);
+    }
+
+    function test_updateController_rejectsAfterDeactivation() public {
+        bytes32 cowHash = _init(controller1, plcDID1);
+
+        vm.prank(controller1);
+        registry.deactivateByHash(cowHash);
+
+        vm.prank(controller1);
+        vm.expectRevert();
+        registry.updateControllerByHash(cowHash, controller2);
+    }
+
+    function test_deactivate_rejectsAlreadyDeactivated() public {
+        bytes32 cowHash = _init(controller1, plcDID1);
+
+        vm.prank(controller1);
+        registry.deactivateByHash(cowHash);
+
+        vm.prank(controller1);
+        vm.expectRevert();
+        registry.deactivateByHash(cowHash);
+    }
+
+    function test_deactivate_clearsWrappedDID() public {
+        bytes32 cowHash = _init(controller1, plcDID1);
+
+        vm.prank(controller1);
+        registry.deactivateByHash(cowHash);
+
+        (, , , string memory did) = registry.cows(cowHash);
+        assertEq(did, "");
     }
 }
