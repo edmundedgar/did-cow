@@ -139,7 +139,7 @@ However, since users can switch to another wrapped DID they can recover from a c
 
 Ethereum offers high security, an established ecosystem and well-supported tooling for multisig and organizational control. It also operates without needing proof-of-work, which many users dislike for its environmental impact.
 
-Strong social consensus on anti-censorship means we can reasonably confident that the main Ethereum chain will continue accepting updates without censorship for the foreseeable future. We be even more confident that in the event that the dominant Ethereum chain lost this property, there would be a well-supported fork preserving its history that continued to have it.
+Strong social consensus on anti-censorship means we can reasonably confident that the main Ethereum chain will continue accepting updates without censorship for the foreseeable future. We can be even more confident that in the event that the dominant Ethereum chain lost this property, there would be a well-supported fork preserving its history that continued to have it.
 
 **Trade-offs:** 
 
