@@ -139,13 +139,13 @@ However, since users can switch to another wrapped DID they can recover from a c
 
 Ethereum offers high security, an established ecosystem and well-supported tooling for multisig and organizational control. It also operates without needing proof-of-work, which many users dislike for its environmental impact.
 
-Strong social consensus on anti-censorship means we can reasonably confident that the main Ethereum chain will continue accepting updates without censorship for the foreseeable future. We can also be highly confident that in the event that the dominant Ethereum chain lost this property, there would be a well-supported fork preserving its history that continued to have it.
+Strong social consensus on anti-censorship means we can reasonably confident that the main Ethereum chain will continue accepting updates without censorship for the foreseeable future. We be even more confident that in the event that the dominant Ethereum chain lost this property, there would be a well-supported fork preserving its history that continued to have it.
 
 **Trade-offs:** 
 
-*Time until finality:* Updates typically take up to 12 seconds to confirm, and longer to finalize.
+**Time until finality:** Updates typically take up to 12 seconds to confirm, and longer to finalize.
 
-*Cost*: A system requiring consensus will typically have capacity limits. Systems aiming for censorship resistance cannot exercise discretion about which transactions are worthwhile, so they typically regulate usage by charging fees. Usage is unpredictable, so costs are also unpredictable: Although Ethereum gas prices are currently low, they may increase if usage grows faster than capacity, and may also be subject to sudden spikes. did:cow updates cost 40,000 to 100,000 gas per update depending on DID length and whether the account has already been registered on-chain. This is roughly equivalent to the cost of a transferring a token.
+**Cost**: A system requiring consensus will typically have capacity limits. Systems aiming for censorship resistance cannot exercise discretion about which transactions are worthwhile, so they typically regulate usage by charging fees. Usage is unpredictable, so costs are also unpredictable: Although Ethereum gas prices are currently low, they may increase if usage grows faster than capacity, and may also be subject to sudden spikes. did:cow updates cost 40,000 to 100,000 gas per update depending on DID length and whether the account has already been registered on-chain. This is roughly equivalent to the cost of a transferring a token.
 
 **Why only one chain:**
 
@@ -177,7 +177,7 @@ Deployed on Sepolia testnet: [`0xE75B156D97cd47a09939837411b0D9D7b64c3CF2`](http
 - `deactivateByHash(cowHash)` — permanently deactivate by pre-computed hash
 
 **CLI tool (`cli/cow.py`):**
-- `resolve <did>` — fetch the wrapped DID document
+- `resolve <did>` — fetch the resolved DID document
 - `describe <did>` — show on-chain state (controller, wrapped DID, registration status)
 - `initialize <did>` — register on-chain without making any updates (useful to take advantage of low-gas periods)
 - `update-wrapped <did> <newWrappedDID>` — update the wrapped DID
