@@ -179,7 +179,7 @@ def resolve(did):
     w3 = _w3()
     contract = _contract(w3)
 
-    wrapped_did, _ = contract.functions.resolveCow(
+    wrapped_did, _ = contract.functions.resolve(
         _controller_address(controller_hex),
         initial_wrapped,
     ).call()
@@ -200,7 +200,7 @@ def describe(did):
     w3 = _w3()
     contract = _contract(w3)
 
-    wrapped_did, controller = contract.functions.resolveCow(
+    wrapped_did, controller = contract.functions.resolve(
         _controller_address(controller_hex),
         initial_wrapped,
     ).call()
@@ -209,7 +209,7 @@ def describe(did):
         click.echo("status:     deactivated")
         return
 
-    cow_hash = contract.functions.calculateCowHash(
+    cow_hash = contract.functions.calculateHash(
         _controller_address(controller_hex),
         initial_wrapped,
     ).call()
@@ -288,7 +288,7 @@ def initialize(did):
     contract = _contract(w3)
     account = _account(w3)
 
-    tx = contract.functions.initializeCow(
+    tx = contract.functions.initialize(
         _controller_address(controller_hex),
         initial_wrapped,
     ).build_transaction({"from": account.address})

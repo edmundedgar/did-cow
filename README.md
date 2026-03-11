@@ -92,7 +92,7 @@ State mutations (updates/deactivations) are controlled by standard Ethereum call
 
 ### 6.2 Read (Resolution)
 
-Call `resolveCow(initial_controller_address, initial_wrapped_did)` against the registry contract.
+Call `resolve(initial_controller_address, initial_wrapped_did)` against the registry contract.
 
  The did:cow registry contract performs the following steps:
 
@@ -114,7 +114,7 @@ If the did:cow ID has not been registered on-chain yet, `updateWrappedDID` and `
 
 Call `deactivate(initial_controller_address, initial_wrapped_did)` from the current controller to permanently deactivate a did:cow ID. If the did:cow ID has not been registered on-chain yet, it will be registered automatically in the same transaction.
 
-After deactivation, `resolveCow` returns an empty string and the DID cannot be reactivated.
+After deactivation, `resolve` returns an empty string and the DID cannot be reactivated.
 
 NB: It is permitted to set the controller to `0x0` via `updateController` without deactivating, in which case the DID continues to resolve but can never be updated or deactivated.
 
@@ -166,9 +166,9 @@ All updates are permanently public with timestamps. This creates an audit trail 
 Deployed on Sepolia testnet: [`0xfca809F35369b6A5F47f52226893Ae1B55eE281b`](https://sepolia.etherscan.io/address/0xfca809F35369b6A5F47f52226893Ae1B55eE281b)
 
 **Contract functions (`CowRegistry.sol`):**
-- `calculateCowHash(controller, wrappedDID)` — derive the registry key for a did:cow ID
-- `resolveCow(controller, wrappedDID)` — return current controller and wrapped DID without needing to pre-compute the hash
-- `initializeCow(controller, wrappedDID)` — optionally pre-register before first update
+- `calculateHash(controller, wrappedDID)` — derive the registry key for a did:cow ID
+- `resolve(controller, wrappedDID)` — return current controller and wrapped DID without needing to pre-compute the hash
+- `initialize(controller, wrappedDID)` — optionally pre-register before first update
 - `updateWrappedDID(controller, wrappedDID, newWrappedDID)` — update wrapped DID, registering if needed
 - `updateWrappedDIDByHash(cowHash, newWrappedDID)` — update wrapped DID by pre-computed hash
 - `updateController(controller, wrappedDID, newController)` — transfer control, registering if needed

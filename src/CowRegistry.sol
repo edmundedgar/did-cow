@@ -29,10 +29,10 @@ contract CowRegistry {
     mapping(bytes32 => Cow) public cows;
 
     /// @notice Emitted when a cow is registered on-chain for the first time.
-    event CowInitialized(bytes32 indexed cowHash, address controller, string wrappedDID);
+    event Initialized(bytes32 indexed cowHash, address controller, string wrappedDID);
 
     /// @notice Emitted when a cow is permanently deactivated.
-    event CowDeactivated(bytes32 indexed cowHash);
+    event Deactivated(bytes32 indexed cowHash);
 
     /// @notice Emitted when a cow's controller address is updated.
     event ControllerUpdated(bytes32 indexed cowHash, address controller);
@@ -44,7 +44,7 @@ contract CowRegistry {
     /// @param _controller The initial controller address.
     /// @param _wrappedDID The initial wrapped DID, without the leading "did:" prefix.
     /// @return The keccak256 hash used as the key in the cows mapping.
-    function calculateCowHash(address _controller, string memory _wrappedDID) public pure returns (bytes32) {
+    function calculateHash(address _controller, string memory _wrappedDID) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(_controller, _wrappedDID));
     }
 
@@ -53,8 +53,8 @@ contract CowRegistry {
     /// @param _controller The initial controller address from the did:cow identifier.
     /// @param _wrappedDID The initial wrapped DID from the did:cow identifier, without "did:".
     /// @return cowHash The registry key for this did:cow identifier.
-    function _ensureCowInitialized(address _controller, string memory _wrappedDID) internal returns (bytes32 cowHash) {
-        cowHash = calculateCowHash(_controller, _wrappedDID);
+    function _ensureInitialized(address _controller, string memory _wrappedDID) internal returns (bytes32 cowHash) {
+        cowHash = calculateHash(_controller, _wrappedDID);
         Cow storage cow = cows[cowHash];
         if (cow.deactivated) revert AlreadyDeactivated();
         if (!cow.initialized) {
@@ -62,7 +62,7 @@ contract CowRegistry {
             cow.initialized = true;
             cow.controller = _controller;
             cow.wrappedDID = _wrappedDID;
-            emit CowInitialized(cowHash, _controller, _wrappedDID);
+            emit Initialized(cowHash, _controller, _wrappedDID);
         }
         return cowHash;
     }
@@ -72,7 +72,7 @@ contract CowRegistry {
     ///      may not yet be registered on-chain.
     ///      Setting _controller to address(0) makes the cow permanently uncontrollable
     ///      without deactivating it — it will continue to resolve but can never be updated.
-    /// @param _cowHash The cow's registry key, as returned by calculateCowHash.
+    /// @param _cowHash The cow's registry key, as returned by calculateHash.
     /// @param _controller The new controller address.
     function updateControllerByHash(bytes32 _cowHash, address _controller) public {
         Cow storage cow = cows[_cowHash];
@@ -87,7 +87,7 @@ contract CowRegistry {
     /// @notice Update the wrapped DID for an already-registered cow.
     /// @dev Caller must be the current controller. Use updateWrappedDID if the cow
     ///      may not yet be registered on-chain.
-    /// @param _cowHash The cow's registry key, as returned by calculateCowHash.
+    /// @param _cowHash The cow's registry key, as returned by calculateHash.
     /// @param _wrappedDID The new wrapped DID, without the leading "did:" prefix.
     function updateWrappedDIDByHash(bytes32 _cowHash, string memory _wrappedDID) public {
         Cow storage cow = cows[_cowHash];
@@ -103,7 +103,7 @@ contract CowRegistry {
     /// @notice Permanently deactivate an already-registered cow.
     /// @dev Caller must be the current controller. Deactivation is irreversible.
     ///      Use deactivate if the cow may not yet be registered on-chain.
-    /// @param _cowHash The cow's registry key, as returned by calculateCowHash.
+    /// @param _cowHash The cow's registry key, as returned by calculateHash.
     function deactivateByHash(bytes32 _cowHash) public {
         Cow storage cow = cows[_cowHash];
         if (!cow.initialized) revert NotInitialized();
@@ -114,7 +114,7 @@ contract CowRegistry {
         cow.controller = address(0);
         cow.wrappedDID = "";
 
-        emit CowDeactivated(_cowHash);
+        emit Deactivated(_cowHash);
     }
 
     /// @notice Optionally pre-register a cow on-chain before its first update.
@@ -122,8 +122,8 @@ contract CowRegistry {
     ///      deactivate all register the cow automatically if needed.
     /// @param _controller The initial controller address.
     /// @param _wrappedDID The initial wrapped DID, without the leading "did:" prefix.
-    function initializeCow(address _controller, string memory _wrappedDID) external {
-        _ensureCowInitialized(_controller, _wrappedDID);
+    function initialize(address _controller, string memory _wrappedDID) external {
+        _ensureInitialized(_controller, _wrappedDID);
     }
 
     /// @notice Transfer control to a new address, registering the cow on-chain if not already present.
@@ -131,7 +131,7 @@ contract CowRegistry {
     /// @param _wrappedDID The initial wrapped DID from the did:cow identifier, without "did:".
     /// @param _newController The new controller address.
     function updateController(address _controller, string memory _wrappedDID, address _newController) external {
-        bytes32 cowHash = _ensureCowInitialized(_controller, _wrappedDID);
+        bytes32 cowHash = _ensureInitialized(_controller, _wrappedDID);
         updateControllerByHash(cowHash, _newController);
     }
 
@@ -140,7 +140,7 @@ contract CowRegistry {
     /// @param _wrappedDID The initial wrapped DID from the did:cow identifier, without "did:".
     /// @param _newWrappedDID The new wrapped DID, without the leading "did:" prefix.
     function updateWrappedDID(address _controller, string memory _wrappedDID, string memory _newWrappedDID) external {
-        bytes32 cowHash = _ensureCowInitialized(_controller, _wrappedDID);
+        bytes32 cowHash = _ensureInitialized(_controller, _wrappedDID);
         updateWrappedDIDByHash(cowHash, _newWrappedDID);
     }
 
@@ -149,7 +149,7 @@ contract CowRegistry {
     /// @param _controller The initial controller address from the did:cow identifier.
     /// @param _wrappedDID The initial wrapped DID from the did:cow identifier, without "did:".
     function deactivate(address _controller, string memory _wrappedDID) external {
-        bytes32 cowHash = _ensureCowInitialized(_controller, _wrappedDID);
+        bytes32 cowHash = _ensureInitialized(_controller, _wrappedDID);
         deactivateByHash(cowHash);
     }
 
@@ -159,12 +159,12 @@ contract CowRegistry {
     /// @param _wrappedDID The initial wrapped DID from the did:cow identifier, without "did:".
     /// @return wrappedDID The current full wrapped DID (with "did:" prepended), or empty string if deactivated.
     /// @return controller The current controller address.
-    function resolveCow(address _controller, string memory _wrappedDID)
+    function resolve(address _controller, string memory _wrappedDID)
         external
         view
         returns (string memory wrappedDID, address controller)
     {
-        bytes32 cowHash = calculateCowHash(_controller, _wrappedDID);
+        bytes32 cowHash = calculateHash(_controller, _wrappedDID);
         Cow storage cow = cows[cowHash];
         if (cow.deactivated) {
             return ("", address(0));
