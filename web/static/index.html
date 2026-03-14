@@ -180,8 +180,6 @@
       margin-top: 0.5rem;
     }
 
-    .radio-group { display: flex; gap: 1.5rem; padding: 0.25rem 0; }
-    .radio-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.95rem; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -209,7 +207,26 @@
     </div>
     <button class="action" onclick="resolveDid()">Resolve</button>
   </div>
-  <div id="resolve-result" class="result" style="display:none"></div>
+  <div id="resolve-status" class="result" style="display:none; margin-top: 1rem;"></div>
+  <div id="resolve-edit" style="display:none; margin-top: 1rem;">
+    <div class="row" style="margin-bottom: 0.75rem;">
+      <div class="field">
+        <label>Controller</label>
+        <input type="text" id="edit-controller" disabled>
+      </div>
+      <button class="action" id="edit-controller-btn" onclick="sendUpdate('controller')" disabled>Update</button>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Wrapped DID</label>
+        <input type="text" id="edit-wrapped" disabled>
+      </div>
+      <button class="action" id="edit-wrapped-btn" onclick="sendUpdate('wrapped')" disabled>Update</button>
+    </div>
+    <div id="edit-status" class="result" style="display:none; margin-top: 0.75rem;"></div>
+    <label style="margin-top: 1.25rem; display: block;">DID Document</label>
+    <div id="resolve-result" class="result" style="display:none; margin-top:0"></div>
+  </div>
 </div>
 
 <!-- Create -->
@@ -239,32 +256,6 @@
   <div id="create-error" class="result error" style="display:none"></div>
 </div>
 
-<!-- Manage (visible when connected) -->
-<div class="card" id="manage-card" style="display:none">
-  <h2>Manage</h2>
-  <p class="hint" style="margin-bottom:0.75rem">Update a did:cow you control. The connected wallet must be the current controller.</p>
-  <div class="field">
-    <label>DID</label>
-    <input type="text" id="manage-did" placeholder="did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:plc:pyzlzqt6b2nyrha7smfry6rv">
-  </div>
-  <div class="field">
-    <label>Update</label>
-    <div class="radio-group">
-      <label class="radio-label"><input type="radio" name="update-type" value="controller" checked> Controller</label>
-      <label class="radio-label"><input type="radio" name="update-type" value="wrapped"> Wrapped DID</label>
-    </div>
-  </div>
-  <div class="field" id="new-controller-field">
-    <label>New controller address</label>
-    <input type="text" id="new-controller" placeholder="8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be">
-  </div>
-  <div class="field" id="new-wrapped-field" style="display:none">
-    <label>New wrapped DID</label>
-    <input type="text" id="new-wrapped" placeholder="did:plc:pyzlzqt6b2nyrha7smfry6rv  or  plc:pyzlzqt6b2nyrha7smfry6rv">
-  </div>
-  <button class="action" onclick="sendUpdate()">Send transaction</button>
-  <div id="manage-status" class="result" style="display:none"></div>
-</div>
 
 <script type="module">
   const API_BASE = "https://cow.watch";
@@ -305,7 +296,10 @@
         controllerInput.value = toChecksumAddress(connectedAddress).slice(2);
       }
       document.getElementById("controller-hint").style.display = "inline";
-      document.getElementById("manage-card").style.display = "block";
+      // Enable edit fields if a DID has already been resolved
+      if (document.getElementById("resolve-edit").style.display !== "none") {
+        setEditEnabled(true);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -321,26 +315,53 @@
 
   // ── Resolve ─────────────────────────────────────────────────────────────────
 
+  let resolvedDid = null; // the DID last successfully resolved, for contract calls
+
+  function setEditEnabled(enabled) {
+    document.getElementById("edit-controller").disabled = !enabled;
+    document.getElementById("edit-wrapped").disabled = !enabled;
+    document.getElementById("edit-controller-btn").disabled = !enabled;
+    document.getElementById("edit-wrapped-btn").disabled = !enabled;
+  }
+
   window.resolveDid = async () => {
     const did = document.getElementById("resolve-did").value.trim();
-    const el = document.getElementById("resolve-result");
-    el.style.display = "block";
-    el.className = "result";
-    el.textContent = "Resolving…";
+    const statusEl = document.getElementById("resolve-status");
+    const resultEl = document.getElementById("resolve-result");
+    const editEl = document.getElementById("resolve-edit");
+
+    statusEl.style.display = "block";
+    statusEl.className = "result";
+    statusEl.textContent = "Resolving…";
+    editEl.style.display = "none";
+    resolvedDid = null;
 
     try {
       const resp = await fetch(`${API_BASE}/${encodeURIComponent(did)}`);
       const body = await resp.json();
       if (!resp.ok) {
-        el.className = "result error";
-        el.textContent = body.detail ?? JSON.stringify(body, null, 2);
+        statusEl.className = "result error";
+        statusEl.textContent = body.detail ?? JSON.stringify(body, null, 2);
       } else {
-        el.className = "result success";
-        el.textContent = JSON.stringify(body, null, 2);
+        statusEl.style.display = "none";
+        resultEl.className = "result";
+        resultEl.textContent = JSON.stringify(body, null, 2);
+
+        const cowBlock = body["did:cow"];
+        if (cowBlock) {
+          const controllerAddr = cowBlock.controller.split(":").pop();
+          document.getElementById("edit-controller").value = controllerAddr;
+          document.getElementById("edit-wrapped").value = "did:" + cowBlock.wrappedDid.replace(/^did:/, "");
+          resolvedDid = did;
+          editEl.style.display = "block";
+          resultEl.style.display = "block";
+          document.getElementById("edit-status").style.display = "none";
+          setEditEnabled(!!connectedAddress);
+        }
       }
     } catch (e) {
-      el.className = "result error";
-      el.textContent = `Network error: ${e.message}`;
+      statusEl.className = "result error";
+      statusEl.textContent = `Network error: ${e.message}`;
     }
   };
 
@@ -434,14 +455,7 @@
     requestAnimationFrame(frame);
   }
 
-  // ── Manage ──────────────────────────────────────────────────────────────────
-
-  document.querySelectorAll('input[name="update-type"]').forEach(radio => {
-    radio.addEventListener("change", () => {
-      document.getElementById("new-controller-field").style.display = radio.value === "controller" ? "" : "none";
-      document.getElementById("new-wrapped-field").style.display = radio.value === "wrapped" ? "" : "none";
-    });
-  });
+  // ── Edit ────────────────────────────────────────────────────────────────────
 
   function parseCowDid(did) {
     if (!did.startsWith("did:cow:")) throw new Error("Not a did:cow DID");
@@ -454,16 +468,14 @@
     };
   }
 
-  window.sendUpdate = async () => {
-    const statusEl = document.getElementById("manage-status");
+  window.sendUpdate = async (updateType) => {
+    const statusEl = document.getElementById("edit-status");
     statusEl.style.display = "block";
     statusEl.className = "result";
     statusEl.textContent = "Preparing transaction…";
 
     try {
-      const did = document.getElementById("manage-did").value.trim();
-      const { controller, wrapped } = parseCowDid(did);
-      const updateType = document.querySelector('input[name="update-type"]:checked').value;
+      const { controller, wrapped } = parseCowDid(resolvedDid);
 
       const config = await loadConfig();
       const provider = new ethers.BrowserProvider(window.ethereum);
@@ -482,11 +494,11 @@
 
       let tx;
       if (updateType === "controller") {
-        const raw = document.getElementById("new-controller").value.trim().replace(/^0x/i, "");
+        const raw = document.getElementById("edit-controller").value.trim().replace(/^0x/i, "");
         if (!/^[0-9a-fA-F]{40}$/.test(raw)) throw new Error("Invalid controller address");
         tx = await contract.updateController(controller, wrapped, "0x" + raw);
       } else {
-        let newWrapped = document.getElementById("new-wrapped").value.trim();
+        let newWrapped = document.getElementById("edit-wrapped").value.trim();
         if (newWrapped.startsWith("did:")) newWrapped = newWrapped.slice(4);
         if (!newWrapped.includes(":")) throw new Error("Invalid wrapped DID");
         tx = await contract.updateWrappedDID(controller, wrapped, newWrapped);
