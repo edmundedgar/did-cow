@@ -179,6 +179,9 @@
       color: #6b7280;
       margin-top: 0.5rem;
     }
+
+    .radio-group { display: flex; gap: 1.5rem; padding: 0.25rem 0; }
+    .radio-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.95rem; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -236,8 +239,49 @@
   <div id="create-error" class="result error" style="display:none"></div>
 </div>
 
+<!-- Manage (visible when connected) -->
+<div class="card" id="manage-card" style="display:none">
+  <h2>Manage</h2>
+  <p class="hint" style="margin-bottom:0.75rem">Update a did:cow you control. The connected wallet must be the current controller.</p>
+  <div class="field">
+    <label>DID</label>
+    <input type="text" id="manage-did" placeholder="did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:plc:pyzlzqt6b2nyrha7smfry6rv">
+  </div>
+  <div class="field">
+    <label>Update</label>
+    <div class="radio-group">
+      <label class="radio-label"><input type="radio" name="update-type" value="controller" checked> Controller</label>
+      <label class="radio-label"><input type="radio" name="update-type" value="wrapped"> Wrapped DID</label>
+    </div>
+  </div>
+  <div class="field" id="new-controller-field">
+    <label>New controller address</label>
+    <input type="text" id="new-controller" placeholder="8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be">
+  </div>
+  <div class="field" id="new-wrapped-field" style="display:none">
+    <label>New wrapped DID</label>
+    <input type="text" id="new-wrapped" placeholder="did:plc:pyzlzqt6b2nyrha7smfry6rv  or  plc:pyzlzqt6b2nyrha7smfry6rv">
+  </div>
+  <button class="action" onclick="sendUpdate()">Send transaction</button>
+  <div id="manage-status" class="result" style="display:none"></div>
+</div>
+
 <script type="module">
   const API_BASE = "https://cow.watch";
+
+  const CONTRACT_ABI = [
+    "function updateController(address _controller, string _wrappedDID, address _newController)",
+    "function updateWrappedDID(address _controller, string _wrappedDID, string _newWrappedDID)",
+  ];
+
+  let contractConfig = null;
+
+  async function loadConfig() {
+    if (contractConfig) return contractConfig;
+    const resp = await fetch(`${API_BASE}/api/config`);
+    contractConfig = await resp.json();
+    return contractConfig;
+  }
 
   // ── Wallet ──────────────────────────────────────────────────────────────────
 
@@ -261,6 +305,7 @@
         controllerInput.value = toChecksumAddress(connectedAddress).slice(2);
       }
       document.getElementById("controller-hint").style.display = "inline";
+      document.getElementById("manage-card").style.display = "block";
     } catch (e) {
       console.error(e);
     }
@@ -388,6 +433,74 @@
 
     requestAnimationFrame(frame);
   }
+
+  // ── Manage ──────────────────────────────────────────────────────────────────
+
+  document.querySelectorAll('input[name="update-type"]').forEach(radio => {
+    radio.addEventListener("change", () => {
+      document.getElementById("new-controller-field").style.display = radio.value === "controller" ? "" : "none";
+      document.getElementById("new-wrapped-field").style.display = radio.value === "wrapped" ? "" : "none";
+    });
+  });
+
+  function parseCowDid(did) {
+    if (!did.startsWith("did:cow:")) throw new Error("Not a did:cow DID");
+    const rest = did.slice("did:cow:".length);
+    const colonIdx = rest.indexOf(":");
+    if (colonIdx === -1) throw new Error("Invalid did:cow format");
+    return {
+      controller: "0x" + rest.slice(0, colonIdx),
+      wrapped: rest.slice(colonIdx + 1),
+    };
+  }
+
+  window.sendUpdate = async () => {
+    const statusEl = document.getElementById("manage-status");
+    statusEl.style.display = "block";
+    statusEl.className = "result";
+    statusEl.textContent = "Preparing transaction…";
+
+    try {
+      const did = document.getElementById("manage-did").value.trim();
+      const { controller, wrapped } = parseCowDid(did);
+      const updateType = document.querySelector('input[name="update-type"]:checked').value;
+
+      const config = await loadConfig();
+      const provider = new ethers.BrowserProvider(window.ethereum);
+
+      const network = await provider.getNetwork();
+      if (Number(network.chainId) !== config.chainId) {
+        statusEl.textContent = "Switching network…";
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: "0x" + config.chainId.toString(16) }],
+        });
+      }
+
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(config.contractAddress, CONTRACT_ABI, signer);
+
+      let tx;
+      if (updateType === "controller") {
+        const raw = document.getElementById("new-controller").value.trim().replace(/^0x/i, "");
+        if (!/^[0-9a-fA-F]{40}$/.test(raw)) throw new Error("Invalid controller address");
+        tx = await contract.updateController(controller, wrapped, "0x" + raw);
+      } else {
+        let newWrapped = document.getElementById("new-wrapped").value.trim();
+        if (newWrapped.startsWith("did:")) newWrapped = newWrapped.slice(4);
+        if (!newWrapped.includes(":")) throw new Error("Invalid wrapped DID");
+        tx = await contract.updateWrappedDID(controller, wrapped, newWrapped);
+      }
+
+      statusEl.textContent = `Transaction sent: ${tx.hash}\nWaiting for confirmation…`;
+      const receipt = await tx.wait();
+      statusEl.className = "result success";
+      statusEl.textContent = `Confirmed in block ${receipt.blockNumber}\nTx: ${tx.hash}`;
+    } catch (e) {
+      statusEl.className = "result error";
+      statusEl.textContent = e.reason ?? e.message ?? String(e);
+    }
+  };
 
   window.copyDid = () => {
     const val = document.getElementById("create-did-value").textContent;

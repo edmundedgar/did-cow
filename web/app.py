@@ -44,6 +44,16 @@ app.add_middleware(
 )
 
 
+@app.get("/api/config")
+async def get_config():
+    """Return contract address and chain ID for use by the web UI."""
+    w3, _ = _get_contract()
+    return {
+        "contractAddress": os.getenv("CONTRACT_ADDRESS"),
+        "chainId": w3.eth.chain_id,
+    }
+
+
 def _validate_cow_did(did: str):
     """Parse and validate a did:cow DID, raising HTTPException on failure."""
     try:
