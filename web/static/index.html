@@ -344,6 +344,7 @@
 
   window.resolveDid = async () => {
     const did = document.getElementById("resolve-did").value.trim();
+    window.location.hash = "!/" + did;
     const statusEl = document.getElementById("resolve-status");
     const resultEl = document.getElementById("resolve-result");
     const editEl = document.getElementById("resolve-edit");
@@ -551,6 +552,19 @@
   document.getElementById("resolve-did").addEventListener("keydown", e => {
     if (e.key === "Enter") window.resolveDid();
   });
+
+  // ── Hash-based deep linking ──────────────────────────────────────────────────
+  function resolveFromHash() {
+    const hash = window.location.hash;
+    if (hash.startsWith("#!/")) {
+      const did = decodeURIComponent(hash.slice(3));
+      document.getElementById("resolve-did").value = did;
+      window.resolveDid();
+    }
+  }
+
+  resolveFromHash();
+  window.addEventListener("hashchange", resolveFromHash);
 </script>
 
 <!-- ethers.js for EIP-55 checksum and future MetaMask tx signing -->
