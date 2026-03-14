@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>did:cow</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      padding: 2rem;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 1.5rem; }
+
+    .cow-ascii {
+      font-family: monospace;
+      font-size: 0.7rem;
+      line-height: 1.3;
+      color: #6b7280;
+      white-space: pre;
+      user-select: none;
+    }
+
+    h1 { font-size: 1.5rem; font-weight: 700; }
+    h1 span { color: #6b7280; font-weight: 400; }
+
+    #connect-btn {
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      padding: 0 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      height: 2.5rem;
+    }
+    #connect-btn:hover { background: #333; }
+    #connect-btn.connected { background: #166534; }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #374151;
+    }
+
+    .field { margin-bottom: 0.75rem; }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #6b7280;
+      margin-bottom: 0.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-family: monospace;
+      height: 2.5rem;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #6b7280;
+    }
+
+    .row { display: flex; gap: 0.75rem; align-items: flex-end; }
+    .row .field { margin-bottom: 0; }
+    .row .field { flex: 1; }
+
+    button.action {
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      padding: 0 1.25rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      height: 2.5rem;
+      white-space: nowrap;
+    }
+    button.action:hover { background: #333; }
+    button.action:disabled { background: #9ca3af; cursor: default; }
+
+    .result {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .result.error { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+    .result.success { background: #f0fdf4; border-color: #bbf7d0; }
+
+    .did-output {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 6px;
+      display: none;
+    }
+
+    .reveal-track {
+      position: relative;
+      display: flex;
+      align-items: center;
+      min-height: 5.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    #create-did-value {
+      font-family: monospace;
+      font-size: 1.2rem;
+      word-break: break-all;
+      width: 100%;
+    }
+
+    .running-cow {
+      position: absolute;
+      top: 0;
+      display: none;
+      pointer-events: none;
+    }
+
+    .running-cow pre {
+      transform: scaleX(-1);
+      font-family: monospace;
+      font-size: 0.85rem;
+      line-height: 1.3;
+      white-space: pre;
+      margin: 0;
+    }
+
+    .copy-btn {
+      background: none;
+      border: 1px solid #6b7280;
+      border-radius: 4px;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      white-space: nowrap;
+      color: #374151;
+    }
+    .copy-btn:hover { background: #f3f4f6; }
+
+    .hint {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <pre class="cow-ascii"
+>  ^__^
+  (oo)\_______
+  (__)\       )\/\
+      ||----w |
+      ||     ||</pre>
+    <h1>did:cow <span>Consensus Ownership Wrapper</span></h1>
+  </div>
+  <button id="connect-btn" onclick="connectWallet()">Connect wallet</button>
+</header>
+
+<!-- Resolve -->
+<div class="card">
+  <h2>Resolve</h2>
+  <div class="row">
+    <div class="field">
+      <label>DID</label>
+      <input type="text" id="resolve-did" placeholder="did:cow:8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be:plc:pyzlzqt6b2nyrha7smfry6rv">
+    </div>
+    <button class="action" onclick="resolveDid()">Resolve</button>
+  </div>
+  <div id="resolve-result" class="result" style="display:none"></div>
+</div>
+
+<!-- Create -->
+<div class="card">
+  <h2>Create</h2>
+  <p class="hint" style="margin-bottom:0.75rem">No transaction required — a did:cow identifier is formed from your controller address and wrapped DID.</p>
+  <div class="field">
+    <label>Controller address <span id="controller-hint" style="color:#166534;display:none">(your connected address)</span></label>
+    <input type="text" id="create-controller" placeholder="8BC101ABF5BcF8b6209FaaAD4D761C1ED14999Be">
+  </div>
+  <div class="field">
+    <label>Wrapped DID</label>
+    <input type="text" id="create-wrapped" placeholder="did:plc:pyzlzqt6b2nyrha7smfry6rv  or  plc:pyzlzqt6b2nyrha7smfry6rv">
+  </div>
+  <button class="action" onclick="createDid()">Construct DID</button>
+  <div id="create-output" class="did-output">
+    <div class="reveal-track">
+      <div class="running-cow" id="running-cow"><pre> ^__^
+(oo)\_______
+(__)\       )\/\
+    ||----w |
+    ||     ||</pre></div>
+      <span id="create-did-value"></span>
+    </div>
+    <button class="copy-btn" id="copy-btn" onclick="copyDid()" style="display:none">Copy</button>
+  </div>
+  <div id="create-error" class="result error" style="display:none"></div>
+</div>
+
+<script type="module">
+  const API_BASE = "https://cow.watch";
+
+  // ── Wallet ──────────────────────────────────────────────────────────────────
+
+  let connectedAddress = null;
+
+  window.connectWallet = async () => {
+    if (!window.ethereum) {
+      alert("No wallet detected. Install MetaMask or another browser wallet.");
+      return;
+    }
+    try {
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      connectedAddress = accounts[0];
+      const btn = document.getElementById("connect-btn");
+      btn.textContent = connectedAddress.slice(0, 6) + "…" + connectedAddress.slice(-4);
+      btn.classList.add("connected");
+
+      // Pre-fill controller with checksummed address (strip 0x for did:cow format)
+      const controllerInput = document.getElementById("create-controller");
+      if (!controllerInput.value) {
+        controllerInput.value = toChecksumAddress(connectedAddress).slice(2);
+      }
+      document.getElementById("controller-hint").style.display = "inline";
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // EIP-55 checksum — minimal implementation
+  function toChecksumAddress(address) {
+    const addr = address.toLowerCase().replace("0x", "");
+    // Use the browser's SubtleCrypto to keccak would require a library;
+    // ethers is loaded below for this — call after ethers loads.
+    return address; // placeholder; replaced once ethers is available
+  }
+
+  // ── Resolve ─────────────────────────────────────────────────────────────────
+
+  window.resolveDid = async () => {
+    const did = document.getElementById("resolve-did").value.trim();
+    const el = document.getElementById("resolve-result");
+    el.style.display = "block";
+    el.className = "result";
+    el.textContent = "Resolving…";
+
+    try {
+      const resp = await fetch(`${API_BASE}/${encodeURIComponent(did)}`);
+      const body = await resp.json();
+      if (!resp.ok) {
+        el.className = "result error";
+        el.textContent = body.detail ?? JSON.stringify(body, null, 2);
+      } else {
+        el.className = "result success";
+        el.textContent = JSON.stringify(body, null, 2);
+      }
+    } catch (e) {
+      el.className = "result error";
+      el.textContent = `Network error: ${e.message}`;
+    }
+  };
+
+  // ── Create ──────────────────────────────────────────────────────────────────
+
+  window.createDid = () => {
+    const errorEl = document.getElementById("create-error");
+    const outputEl = document.getElementById("create-output");
+    errorEl.style.display = "none";
+    outputEl.style.display = "none";
+
+    let controller = document.getElementById("create-controller").value.trim();
+    let wrapped = document.getElementById("create-wrapped").value.trim();
+
+    // Strip leading 0x if present
+    if (controller.startsWith("0x") || controller.startsWith("0X")) {
+      controller = controller.slice(2);
+    }
+
+    // Strip leading did: if present
+    if (wrapped.startsWith("did:")) {
+      wrapped = wrapped.slice(4);
+    }
+
+    if (!controller) {
+      showCreateError("Controller address is required.");
+      return;
+    }
+    if (!/^[0-9a-fA-F]{40}$/.test(controller)) {
+      showCreateError("Controller must be a 40-character hex Ethereum address.");
+      return;
+    }
+    if (!wrapped) {
+      showCreateError("Wrapped DID is required.");
+      return;
+    }
+    if (!wrapped.includes(":")) {
+      showCreateError("Wrapped DID must include a method, e.g. plc:xxx or web:example.com");
+      return;
+    }
+
+    // EIP-55 checksum via ethers
+    let checksummed;
+    try {
+      checksummed = ethers.getAddress("0x" + controller).slice(2);
+    } catch (e) {
+      showCreateError("Invalid Ethereum address.");
+      return;
+    }
+
+    const did = `did:cow:${checksummed}:${wrapped}`;
+    animateCowReveal(did);
+  };
+
+  function animateCowReveal(did) {
+    const outputEl = document.getElementById("create-output");
+    const didEl = document.getElementById("create-did-value");
+    const cowEl = document.getElementById("running-cow");
+    const copyBtn = document.getElementById("copy-btn");
+
+    didEl.textContent = did;
+    didEl.style.clipPath = "inset(0 100% 0 0)";
+    cowEl.style.display = "block";
+    cowEl.style.left = "0px";
+    copyBtn.style.display = "none";
+    outputEl.style.display = "block";
+
+    const cowWidth = cowEl.offsetWidth;
+    const trackWidth = cowEl.parentElement.offsetWidth;
+    const travel = trackWidth - cowWidth; // tail goes from 0 to right edge
+
+    const duration = 5400;
+    const start = performance.now();
+
+    function frame(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+      const leftPx = eased * travel;
+      cowEl.style.left = leftPx + "px";
+      // reveal tracks the tail (left edge of cow) so text comes out behind it
+      const revealPct = (leftPx / trackWidth) * 100;
+      didEl.style.clipPath = `inset(0 ${100 - revealPct}% 0 0)`;
+      if (t < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        didEl.style.clipPath = ""; // reveal the last bit hidden under the cow
+        copyBtn.style.display = "inline-block";
+      }
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  window.copyDid = () => {
+    const val = document.getElementById("create-did-value").textContent;
+    navigator.clipboard.writeText(val).then(() => {
+      const btn = document.querySelector(".copy-btn");
+      btn.textContent = "Copied!";
+      setTimeout(() => { btn.textContent = "Copy"; }, 1500);
+    });
+  };
+
+  function showCreateError(msg) {
+    const el = document.getElementById("create-error");
+    el.textContent = msg;
+    el.style.display = "block";
+  }
+
+  // ── Enter on resolve input ───────────────────────────────────────────────────
+  document.getElementById("resolve-did").addEventListener("keydown", e => {
+    if (e.key === "Enter") window.resolveDid();
+  });
+</script>
+
+<!-- ethers.js for EIP-55 checksum and future MetaMask tx signing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
+
+</body>
+</html>
