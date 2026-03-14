@@ -197,6 +197,18 @@
   <button id="connect-btn" onclick="connectWallet()">Connect wallet</button>
 </header>
 
+<!-- About -->
+<div class="card">
+	<p><b>did:cow</b> is a proposed decentralized identifier aimed at providing stronger guarantees for identities used in ATProto. 
+	<br />
+	<br />
+	A did:cow ID consists of a pointer at a did:web or did:plc ID, and an address on the Ethereum network that can update it. It can be created for free without a blockchain transaction, and you only need to send a blockchain transaction to point it to a different did:web or did:plc ID, or change the blockchain address that controls it.
+	<br />
+	<br />
+	<a href="https://tangled.org/goat.navy/did-cow">Read the specification</a>
+	  <span id="about-short"><a href="#" onclick="showMore(event)"></a></span><span id="about-more" style="display:none"></span></p>
+</div>
+
 <!-- Resolve -->
 <div class="card">
   <h2>Resolve</h2>
@@ -273,6 +285,12 @@
     contractConfig = await resp.json();
     return contractConfig;
   }
+
+  window.showMore = (e) => {
+    e.preventDefault();
+    document.getElementById("about-short").style.display = "none";
+    document.getElementById("about-more").style.display = "inline";
+  };
 
   // ── Wallet ──────────────────────────────────────────────────────────────────
 
