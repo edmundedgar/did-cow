@@ -164,7 +164,7 @@ All updates are permanently public with timestamps. This creates an audit trail 
 
 Deployed on Sepolia testnet: [`0x8560798CD78D09143D0194249503ebe25706ed96`](https://sepolia.etherscan.io/address/0x8560798CD78D09143D0194249503ebe25706ed96)
 
-**Contract functions (`CowRegistry.sol`):**
+**Contract functions ([`src/CowRegistry.sol`](src/CowRegistry.sol)):**
 - `calculateHash(controller, wrappedDID)` — derive the registry key for a did:cow ID
 - `resolve(controller, wrappedDID)` — return current controller and wrapped DID without needing to pre-compute the hash
 - `initialize(controller, wrappedDID)` — optionally pre-register before first update
@@ -175,7 +175,7 @@ Deployed on Sepolia testnet: [`0x8560798CD78D09143D0194249503ebe25706ed96`](http
 - `deactivate(controller, wrappedDID)` — permanently deactivate, registering if needed
 - `deactivateByHash(cowHash)` — permanently deactivate by pre-computed hash
 
-**CLI tool (`cli/cow.py`):**
+**CLI tool ([`cli/cow.py`](cli/cow.py)):**
 - `resolve <did>` — fetch the resolved DID document
 - `describe <did>` — show on-chain state (controller, wrapped DID, registration status)
 - `initialize <did>` — register on-chain without making any updates (useful to take advantage of low-gas periods)
