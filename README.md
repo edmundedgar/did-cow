@@ -1,7 +1,7 @@
 # The did:cow method specification
 
-Status: Draft Specification
-Author: Edmund Edgar ( [goat.navy](https://bsky.app/profile/goat.navy) )
+Status: Draft Specification<br>
+Author: Edmund Edgar ( [goat.navy](https://bsky.app/profile/goat.navy) )<br>
 Date: March 10th, 2026
 
 ## Abstract
