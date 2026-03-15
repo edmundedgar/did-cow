@@ -49,7 +49,7 @@ DID prefix: `did:cow:` (lowercase)
 Format: `did:cow:<initial_controller_address>:<initial_wrapped_did>`
 
 **Parameters:**
-- `initial_controller_address` - Ethereum address (20 bytes, no "0x" prefix), checksum-encoded per [EIP-55](https://eips.ethereum.org/EIPS/eip-55)
+- `initial_controller_address` - Ethereum address, checksum-encoded per [EIP-55](https://eips.ethereum.org/EIPS/eip-55) but with the leading `0x` stripped.
 - `initial_wrapped_did` - The wrapped DID with its leading `did:` stripped, e.g. `web:example.com` rather than `did:web:example.com`
 
 ### 3 Examples
