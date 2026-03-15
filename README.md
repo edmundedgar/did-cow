@@ -22,7 +22,7 @@ This is a draft specification and may be updated, replaced, or obsoleted at any 
 
 ### 1.1 Motivation
 
-ATProto currently supports 2 identity standards, did:web and did:plc. These are both potentially problematic for long-term use by users who may be the target of censorship: did:web depends on the continued cooperation of a registrar and the nation state that regulates it, as well as suffering from more mundane issues like forgetting to renew or being priced out by registrar fee increases. did:plc depends on a centralized server, and we have no guarantees about its future behaviour.
+ATProto currently supports 2 identity standards, did:web and did:plc. These are both potentially problematic for long-term use by users who may be the target of censorship: A did:web ID depends on the continued cooperation of a registrar and the nation state that regulates it, as well as suffering from more mundane issues like forgetting to renew or being priced out by registrar fee increases. A did:plc ID depends on a centralized server, and we have no guarantees about its future behaviour.
 
 Migration between DIDs is not possible, so your did:web identity only lasts as long as your control of your domain does, and your did:plc identity only lasts until the centralized did:plc server starts acting dishonestly.
 
