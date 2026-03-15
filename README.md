@@ -1,4 +1,4 @@
-# The did:cow Method Specification v0.1
+# The did:cow method specification
 
 **Status:** Draft Specification
 
@@ -197,10 +197,7 @@ A systemd unit file is provided at [`web/cow-api.service`](web/cow-api.service).
 
 **Web UI ([`web/static/index.html`](web/static/index.html)):**
 
-A static single-page app hosted at `https://cow.watch`. Run locally with:
-```bash
-python3 web/web.py   # serves on port 6667
-```
+A static single-page app hosted at `https://cow.watch`.
 - **Resolve** — enter a did:cow DID to fetch and display the DID document, with the current controller and wrapped DID shown as editable fields
 - **Create** — construct a did:cow identifier from a controller address and wrapped DID, with an animated reveal
 - **Edit** — update the controller or wrapped DID via a MetaMask transaction (visible after resolving; requires wallet connection)
