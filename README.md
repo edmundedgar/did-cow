@@ -31,11 +31,11 @@ did:cow is an attempt to get the best of both worlds by adding a blockchain wrap
  
 ### 1.2 Design Goals
 
-1. **Decentralized** - No trusted third-party responsible for ultimate resolution.
-2. **Zero-cost creation** - No blockchain transaction should be required to create a did:cow ID.
-3. **Method agnostic** - Any DID method can be wrapped.
-4. **Transferable** - The controller used for a did:cow ID can be replaced. If using a smart contract as controller, the controller can be retained but access to the controller changed.
-5. **Composable Control** - The controller can be an arbitrary computer program, allowing sophisticted custom logic and compatibility with multisig and decentralized organization tooling such as [Safe](https://docs.safe.global/home/what-is-safe).
+1. **Decentralization** - No trusted third-party is responsible for ultimate resolution.
+2. **Zero-cost creation** - No blockchain transaction is required to create a did:cow ID.
+3. **Method agnosticism** - Any other DID methods supported by ATProto in future can also be wrapped.
+4. **Transferability** - The controller used for a did:cow ID can be replaced. If using a smart contract as controller, the controller can be retained but access to the controller changed.
+5. **Composability** - The controller can be an arbitrary computer program, allowing sophisticted custom logic and compatibility with multisig and decentralized organization tooling such as [Safe](https://docs.safe.global/home/what-is-safe).
 6. **Minimal dependencies** - An Ethereum RPC endpoint is required to resolve, but you should not need additional infrastructure such as an indexer.
 
 ## 2. DID Method Name
@@ -123,10 +123,7 @@ The controller address inherits all the security considerations of any other Eth
 
 ### 7.2 Wrapped DID
 
-The did:cow address inherits the security risks of the wrapped DID:
-- did:web: DNS hijacking risk
-- did:key: no rotation ability
-- did:plc: key compromise, risk of abuse by the trusted central server
+The did:cow address inherits the security risks of the wrapped DID.
 
 However, since users can switch to another wrapped DID they can recover from a compromise of the wrapped DID, and also exit in circumstances where the wrapped DID appears likely to become unreliable in future.
 
