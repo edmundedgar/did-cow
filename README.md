@@ -123,7 +123,7 @@ The controller address inherits all the security considerations of any other Eth
 
 ### 7.2 Wrapped DID
 
-The did:cow address inherits the security risks of the wrapped DID.
+The did:cow ID inherits the security risks of the wrapped DID.
 
 However, since users can switch to another wrapped DID they can recover from a compromise of the wrapped DID, and also exit in circumstances where the wrapped DID appears likely to become unreliable in future.
 
