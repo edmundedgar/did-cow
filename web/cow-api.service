@@ -1,0 +1,13 @@
+[Unit]
+Description=did:cow API
+After=network.target
+
+[Service]
+User=didcow
+WorkingDirectory=/home/didcow/working/did-cow/web
+ExecStart=/usr/bin/python3 -m uvicorn app:app --host 127.0.0.1 --port 6666
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
