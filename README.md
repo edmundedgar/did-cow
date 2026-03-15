@@ -10,9 +10,9 @@
 
 The `did:cow` method (Consensus Ownership Wrapper) provides a persistent, decentralized, censorship-proof wrapper around other DID methods.
 
-It stores changes of control and migrations between wrapped DIDs on the Ethereum blockchain, affording users strong anti-censorship and anti-reorg guarantees even if the wrapped DIDs lack these properties. 
+It stores changes of control and migrations between wrapped DIDs on the Ethereum blockchain, affording users strong anti-censorship and anti-reorg guarantees and allows recovery even if the centralized server or domain used by a did:plc or did:web ID is compromised.
 
-It uses blockchain transactions for migration between DIDs and changes of control, but avoids the need for blockchain transactions for initial account creation or day-to-day updates.
+It uses blockchain transactions for migration between DIDs and changes of control, but avoids the need for blockchain transactions for initial account creation and day-to-day updates, by allowing them to be delegated to non-blockchain-based DID methods.
 
 ## Status of This Document
 
@@ -22,16 +22,15 @@ This is a draft specification and may be updated, replaced, or obsoleted at any 
 
 ### 1.1 Motivation
 
-Existing DID methods have trade-offs:
-- **did:key** - No rotation or recovery.
-- **did:web** - Domain dependency, if you lose control of your domain you lose control of your identity.
-- **did:plc** - Dependency on a centralized sequencer (plc.directory) which can censor updates and/or create malicious reorgs.
-- **did:ethr** - Gas costs for all updates.
+ATProto currently supports 2 identity standards, did:web and did:plc. These are both potentially problematic for long-term use by users who may be the target of censorship: did:web depends on the continued cooperation of a registrar and the nation state that regulates it, as well as suffering from more mundane issues like forgetting to renew or being priced out by registrar fee increases. did:plc depends on a centralized server, and we have no guarantees about its future behaviour.
 
 Migration between DIDs is not possible, so your did:web identity only lasts as long as your control of your domain does, and your did:plc identity only lasts until the centralized did:plc server starts acting dishonestly.
 
-We propose that users continue to use these methods for day-to-day updates, but wrap them in a blockchain-managed identity to enable migration between them.
+An alternative would be to use a blockchain-based system; There are several mature public blockchains systems that are optimized for censorship resistance. However optimizing for censorship resistance tends to mean deoptimizing in other respects. For example, since public blockchains have limited capacity and do not have anyone in a position to make judgements about which records are legitimate and which are spam, they typically regulate admission through variable fees. Even if a given system is currently successfully scaling to stay ahead of legitimate demand, there is no guarantee that this will always be true in future.
 
+did:cow is an attempt to get the best of both worlds by adding a blockchain wrapper to did:plc or did:web ID. The wrapper consists of a wrapped DID (did:cow or did:plc), along with a blockchain address with the power to change the ID to which it points. The ID is formed from its initial parameters, so until one or the other has been changed, it can be resolved without sending a transaction to the blockchain: You can simply start using the identifier. 
+
+ 
 ### 1.2 Design Goals
 
 1. **Decentralized** - No trusted third-party responsible for ultimate resolution.
