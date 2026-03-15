@@ -35,6 +35,13 @@
     h1 { font-size: 1.5rem; font-weight: 700; }
     h1 span { color: #6b7280; font-weight: 400; }
 
+    .mobile-break { display: none; }
+
+    @media (max-width: 600px) {
+      h1 span { font-size: 1rem; }
+      .mobile-break { display: block; }
+    }
+
     #connect-btn {
       background: #1a1a1a;
       color: #fff;
@@ -192,7 +199,7 @@
   (__)\       )\/\
       ||----w |
       ||     ||</pre>
-    <h1>did:cow <span>Consensus Ownership Wrapper</span></h1>
+    <h1>did:cow <span><br class="mobile-break">Consensus Ownership Wrapper</span></h1>
   </div>
   <button id="connect-btn" onclick="connectWallet()">Connect wallet</button>
 </header>
