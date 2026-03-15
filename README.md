@@ -102,7 +102,7 @@ Resolve the wrapped DID as per that DID system's resolution method.
 ### 6.3 Update
 
 Send an on-chain transaction from the current controller to either:
-- `updateWrappedDID` / `updateWrappedDIDByHash` — change the wrapped DID
+- `updateWrappedDID` / `updateWrappedDIDByHash` — set a new wrapped DID omitting the initial "`did:`".
 - `updateController` / `updateControllerByHash` — transfer control to a new address
 
 If the did:cow ID has not been registered on-chain yet, `updateWrappedDID` and `updateController` will register it automatically in the same transaction.
