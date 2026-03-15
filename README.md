@@ -26,7 +26,7 @@ Migration between DIDs is not possible, so your did:web identity only lasts as l
 
 An alternative would be to use a blockchain-based identity system; There are several mature public blockchains systems that are optimized for censorship resistance. However optimizing for censorship resistance tends to mean deoptimizing in other respects. For example, since public blockchains have limited capacity and do not have anyone in a privileged position who can make judgements about which records are legitimate and which are spam, they typically regulate admission through variable fees. Even if a given system is currently successfully scaling to stay ahead of legitimate demand, there is no guarantee that this will always be true in future.
 
-did:cow is an attempt to get the best of both worlds by adding a blockchain wrapper to did:plc or did:web ID. The wrapper consists of a wrapped DID (did:cow or did:plc), along with a blockchain address with the power to change the ID to which it points. The ID is formed from its initial parameters, so until one or the other has been changed, it can be resolved without sending a transaction to the blockchain: You can simply start using the identifier. 
+did:cow is an attempt to get the best of both worlds by adding a blockchain wrapper to did:plc or did:web ID. The wrapper consists of a wrapped DID (did:cow or did:plc), along with a blockchain address with the power to change the ID to which it points. The ID is formed by concatenating its parameters, so until one or the other has been changed, it can be resolved without sending a transaction to the blockchain: You can simply start using the identifier. 
 
  
 ### 1.2 Design Goals
