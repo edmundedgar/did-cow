@@ -183,6 +183,29 @@ Deployed on Sepolia testnet: [`0x8560798CD78D09143D0194249503ebe25706ed96`](http
 - `update-controller <did> <newController>` — transfer control
 - `deactivate <did>` — permanently deactivate
 
+**Resolution API ([`web/app.py`](web/app.py)):**
+
+A FastAPI server providing HTTP resolution, hosted at `https://api.cow.watch`. Run with:
+```bash
+uvicorn app:app --host 127.0.0.1 --port 6666
+```
+- `GET /<did>` — resolve a did:cow DID and return the modified DID document (mirrors the [plc.directory](https://plc.directory) API shape)
+- `GET /<did>/describe` — return on-chain state without fetching the wrapped DID document
+- `GET /api/config` — return contract address and chain ID (used by the web UI)
+
+A systemd unit file is provided at [`web/cow-api.service`](web/cow-api.service).
+
+**Web UI ([`web/static/index.html`](web/static/index.html)):**
+
+A static single-page app hosted at `https://cow.watch`. Run locally with:
+```bash
+python3 web/web.py   # serves on port 6667
+```
+- **Resolve** — enter a did:cow DID to fetch and display the DID document, with the current controller and wrapped DID shown as editable fields
+- **Create** — construct a did:cow identifier from a controller address and wrapped DID, with an animated reveal
+- **Edit** — update the controller or wrapped DID via a MetaMask transaction (visible after resolving; requires wallet connection)
+- Deep-linking: `https://cow.watch/#!/did:cow:...` auto-resolves on load
+
 ## 10. Example DID Document
 
 This example shows a did:cow ID wrapping a did:plc identity. The resolved document is the underlying did:plc document with three modifications: the `id` is replaced with the did:cow identifier, and a `did:cow` block is added carrying the Ethereum controller address (as a did:pkh DID) and the wrapped DID for client validation.
