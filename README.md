@@ -267,4 +267,4 @@ We consider this to illuminate a problem with the existing DIDs, rather than wit
 ---
 
 **Version History:**
-- v0.1 (2026-02-16) - Initial draft specification
+- v0.1 (2026-03-16) - Initial draft specification
