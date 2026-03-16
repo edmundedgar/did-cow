@@ -94,10 +94,12 @@ Call `resolve(initial_controller_address, initial_wrapped_did)` against the regi
  The did:cow registry contract performs the following steps:
 
  - If no on-chain record exists, resolve the wrapped DID from the identifier directly.
- - If an on-chain record exists, prepend `did:` to the returned wrapped DID value and resolve that.
+ - If an on-chain record exists, return the wrapped DID value.
  - If the record exists but has been deactivated, return deactivated status.
 
 Resolve the wrapped DID as per that DID system's resolution method.
+
+`initial_wrapped_did` should omit the initial "`did:`".
 
 ### 6.3 Update
 
@@ -109,7 +111,10 @@ If the did:cow ID has not been registered on-chain yet, `updateWrappedDID` and `
 
 ### 6.4 Deactivate
 
-Call `deactivate(initial_controller_address, initial_wrapped_did)` from the current controller to permanently deactivate a did:cow ID. If the did:cow ID has not been registered on-chain yet, it will be registered automatically in the same transaction.
+Call `deactivate` / `deactivateByHash` from the current controller to permanently deactivate a did:cow ID. 
+
+If the did:cow ID has not been registered on-chain yet, it will be registered automatically in the same transaction.
+The `initial_controller_address` should omit the initial "`did:`".
 
 After deactivation, `resolve` returns an empty string and the DID cannot be reactivated.
 
@@ -245,25 +250,13 @@ Resolved DID Document:
 }
 ```
 
-## 11. Comparison
-
-| Feature | did:cow | did:key | did:web | did:plc |
-|---------|---------|---------|---------|---------|
-| Rotation Support | ✓ | ✗ | ✓ | ✓ |
-| Zero-cost Creation | ✓ | ✓ | ✓ | ✓ |
-| Zero-cost Updates | ✗ | ✓ | ✓ | ✓ |
-| Decentralized | ✓ | ✓ | ✗ | ✗ |
-| Blockchain Required | Ethereum | None | None | None |
-| Rotation Authority | Ethereum | N/A | DNS | PLC Directory |
-| Censorship Resistant | ✓ | ✓ | ✗ | ✗ |
-
-## 12. Philosophical Considerations
+## 11. Philosophical Considerations
 
 DIDs are intended to be permanent identifiers. Using a wrapper implies that the wrapped DID is not in fact a permanent identifier.
 
 We consider this to illuminate a problem with the existing DIDs, rather than with this proposal. A permanent wrapper is required because users cannot be sufficiently confident in the permanence of their existing options.
 
-## 13. References
+## 12. References
 
 - [DID Core Specification](https://www.w3.org/TR/did-core/)
 - [DID Method Rubric](https://w3c.github.io/did-rubric/)
