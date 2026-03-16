@@ -144,7 +144,7 @@ Strong social consensus on the importance of censorship resistence we can reason
 
 **Time until finality:** Updates typically take up to 12 seconds to confirm, and longer to finalize.
 
-**Cost**: A system requiring consensus will typically have capacity limits. Systems aiming for censorship resistance cannot exercise discretion about which transactions are worthwhile, so they typically regulate usage by charging fees. Usage is unpredictable, so costs are also unpredictable: Although Ethereum gas prices are currently low, they may increase if usage grows faster than capacity, and may also be subject to sudden spikes. did:cow updates cost 40,000 to 100,000 gas per update depending on DID length and whether the account has already been registered on-chain. This is roughly equivalent to the cost of a transferring a token.
+**Cost**: A system requiring consensus will typically have capacity limits. Systems aiming for censorship resistance cannot exercise discretion about which transactions are worthwhile, so they typically regulate usage by charging fees. Usage is unpredictable, so costs are also unpredictable: Although Ethereum gas prices are currently low, they may increase if usage grows faster than capacity, and may also be subject to sudden spikes. did:cow updates cost 30,000 to 100,000 gas per update depending on DID length and whether the account has already been registered on-chain. This is roughly equivalent to the cost of a transferring a token.
 
 **Why only one chain:**
 
