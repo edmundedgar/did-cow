@@ -130,7 +130,7 @@ The controller address inherits all the security considerations of any other Eth
 
 The did:cow ID inherits the security risks of the wrapped DID.
 
-However, since users can switch to another wrapped DID they can recover from a compromise of the wrapped DID, and also exit in circumstances where the wrapped DID appears likely to become unreliable in future.
+However, since users can switch to another wrapped DID they can exit in circumstances where the wrapped DID appears likely to become unreliable in future,  and recover in the event that the wrapped DID is compromised.
 
 ### 7.3 Blockchain Dependencies
 
