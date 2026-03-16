@@ -254,7 +254,7 @@ Resolved DID Document:
 
 DIDs are intended to be permanent identifiers. Using a wrapper implies that the wrapped DID is not in fact a permanent identifier.
 
-We consider this to illuminate a problem with the existing DIDs, rather than with this proposal. A permanent wrapper is required because users cannot be sufficiently confident in the permanence of their existing options.
+We consider this to illuminate a limitation with the existing DIDs, rather than with this proposal. A permanent wrapper is required because users cannot be sufficiently confident in the permanence of their existing options.
 
 ## 12. References
 
