@@ -205,7 +205,7 @@ A static single-page app hosted at `https://cow.watch`.
 
 ## 10. Example DID Document
 
-This example shows a did:cow ID wrapping a did:plc identity. The resolved document is the underlying did:plc document with three modifications: the `id` is replaced with the did:cow identifier, and a `did:cow` block is added carrying the Ethereum controller address (as a did:pkh DID) and the wrapped DID for client validation.
+This example shows a did:cow ID wrapping a did:plc identity. The resolved document is the underlying did:plc document with the following modifications: the `id` is replaced with the did:cow identifier, and a `did:cow` block is added carrying the Ethereum controller address (as a did:pkh DID) and the wrapped DID for client validation.
 
 Given:
 ```
