@@ -215,9 +215,8 @@
 	An ID can be created for free without a blockchain transaction. You only need to send a blockchain transaction if you want to point it at a different did:web or did:plc ID, or change the blockchain address that controls it.
 	<br />
 	<br />
+    <a style="float:right" href="/#!/did:cow:B6aaa1DAd9D09d689dc6111dcc6EA2A0d641b406:plc:pyzlzqt6b2nyrha7smfry6rv">Example</a>
 	<a href="https://tangled.org/goat.navy/did-cow">Specification</a>
-	|
-	<a href="/#!/did:cow:B6aaa1DAd9D09d689dc6111dcc6EA2A0d641b406:plc:pyzlzqt6b2nyrha7smfry6rv">Example</a>
 	|
 	<a href="https://api.cow.watch/did:cow:B6aaa1DAd9D09d689dc6111dcc6EA2A0d641b406:plc:pyzlzqt6b2nyrha7smfry6rv">API</a>
 	|
@@ -291,7 +290,18 @@
   const CONTRACT_ABI = [
     "function updateController(address _controller, string _wrappedDID, address _newController)",
     "function updateWrappedDID(address _controller, string _wrappedDID, string _newWrappedDID)",
+    "error NotController()",
+    "error NotInitialized()",
+    "error AlreadyDeactivated()",
+    "error EmptyWrappedDID()",
   ];
+
+  const CONTRACT_ERROR_MESSAGES = {
+    "0x23019e67": "The connected wallet is not the current controller of this DID.",
+    "0x87138d5c": "This DID has not been registered on-chain yet.",
+    "0x5deafd90": "This DID has been permanently deactivated.",
+    "0x8a98f156": "Wrapped DID cannot be empty.",
+  };
 
   let contractConfig = null;
 
@@ -327,7 +337,7 @@
       // Pre-fill controller with checksummed address (strip 0x for did:cow format)
       const controllerInput = document.getElementById("create-controller");
       if (!controllerInput.value) {
-        controllerInput.value = toChecksumAddress(connectedAddress).slice(2);
+        controllerInput.value = ethers.getAddress(connectedAddress).slice(2);
       }
       document.getElementById("controller-hint").style.display = "inline";
       // Enable edit fields if a DID has already been resolved
@@ -338,14 +348,6 @@
       console.error(e);
     }
   };
-
-  // EIP-55 checksum — minimal implementation
-  function toChecksumAddress(address) {
-    const addr = address.toLowerCase().replace("0x", "");
-    // Use the browser's SubtleCrypto to keccak would require a library;
-    // ethers is loaded below for this — call after ethers loads.
-    return address; // placeholder; replaced once ethers is available
-  }
 
   // ── Resolve ─────────────────────────────────────────────────────────────────
 
@@ -358,8 +360,24 @@
     document.getElementById("edit-wrapped-btn").disabled = !enabled;
   }
 
+  function extractDid(input) {
+    // Strip a full cow.watch URL if pasted, e.g. https://cow.watch/#!/did:cow:...
+    input = input.trim().replace(/^https?:\/\/[^/]+\/#!\//, "");
+    // Also handle bare hash e.g. #!/did:cow:...
+    input = input.replace(/^#!\//, "");
+    return input;
+  }
+
   window.resolveDid = async () => {
-    const did = document.getElementById("resolve-did").value.trim();
+    const did = extractDid(document.getElementById("resolve-did").value);
+    if (!did) {
+      const statusEl = document.getElementById("resolve-status");
+      statusEl.style.display = "block";
+      statusEl.className = "result error";
+      statusEl.textContent = "Please enter a did:cow DID.";
+      return;
+    }
+    document.getElementById("resolve-did").value = did; // normalise the field
     window.location.hash = "!/" + did;
     const statusEl = document.getElementById("resolve-status");
     const resultEl = document.getElementById("resolve-result");
@@ -416,10 +434,7 @@
       controller = controller.slice(2);
     }
 
-    // Strip leading did: if present
-    if (wrapped.startsWith("did:")) {
-      wrapped = wrapped.slice(4);
-    }
+    wrapped = stripDidPrefix(wrapped);
 
     if (!controller) {
       showCreateError("Controller address is required.");
@@ -490,6 +505,12 @@
     requestAnimationFrame(frame);
   }
 
+  function stripDidPrefix(s) {
+    // Remove one or more leading "did:" repetitions
+    while (s.startsWith("did:")) s = s.slice(4);
+    return s;
+  }
+
   // ── Edit ────────────────────────────────────────────────────────────────────
 
   function parseCowDid(did) {
@@ -530,12 +551,13 @@
       let tx;
       if (updateType === "controller") {
         const raw = document.getElementById("edit-controller").value.trim().replace(/^0x/i, "");
-        if (!/^[0-9a-fA-F]{40}$/.test(raw)) throw new Error("Invalid controller address");
+        if (!raw) throw new Error("Controller address is required.");
+        if (!/^[0-9a-fA-F]{40}$/.test(raw)) throw new Error("Invalid controller address — expected a 40-character hex Ethereum address.");
         tx = await contract.updateController(controller, wrapped, "0x" + raw);
       } else {
-        let newWrapped = document.getElementById("edit-wrapped").value.trim();
-        if (newWrapped.startsWith("did:")) newWrapped = newWrapped.slice(4);
-        if (!newWrapped.includes(":")) throw new Error("Invalid wrapped DID");
+        let newWrapped = stripDidPrefix(document.getElementById("edit-wrapped").value.trim());
+        if (!newWrapped) throw new Error("Wrapped DID is required.");
+        if (!newWrapped.includes(":")) throw new Error("Wrapped DID must include a method, e.g. plc:xxx or web:example.com");
         tx = await contract.updateWrappedDID(controller, wrapped, newWrapped);
       }
 
@@ -545,7 +567,17 @@
       statusEl.textContent = `Confirmed in block ${receipt.blockNumber}\nTx: ${tx.hash}`;
     } catch (e) {
       statusEl.className = "result error";
-      statusEl.textContent = e.reason ?? e.message ?? String(e);
+      if (e.code === "CALL_EXCEPTION") {
+        const selector = typeof e.data === "string" ? e.data.slice(0, 10) : null;
+        statusEl.textContent = CONTRACT_ERROR_MESSAGES[selector] ?? `Contract reverted${selector ? ` (${selector})` : ""}`;
+      } else if (e.code === "UNKNOWN_ERROR" || e.message?.includes("coalesce")) {
+        // MetaMask sometimes returns a malformed RPC response after broadcasting
+        // even though the tx went through.
+        statusEl.className = "result success";
+        statusEl.textContent = "Transaction sent — check your wallet for confirmation status.";
+      } else {
+        statusEl.textContent = e.reason ?? e.message ?? String(e);
+      }
     }
   };
 
